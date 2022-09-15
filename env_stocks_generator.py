@@ -4,7 +4,7 @@ from globals import *
 
 
 class StocksGeneratorEnv:
-    def __init__(self, n_actions=3):
+    def __init__(self, n_actions=2):
         self.n_actions = n_actions
         self.action_space = list(range(self.n_actions))
         self.state_space = [0]
@@ -38,9 +38,9 @@ class StocksGeneratorEnv:
         if action == 0:
             self.arrow = -1
         elif action == 1:
-            self.arrow = 0
-        elif action == 2:
             self.arrow = 1
+        # elif action == 2:
+        #     self.arrow = 1
         else:
             raise RuntimeError('wrong arrow')
         if prev_arrow != self.arrow:
@@ -55,14 +55,14 @@ class StocksGeneratorEnv:
         return next_state
 
     def calc_reward(self, next_tick):
-        if self.arrow == 1:
-            if self.prev_tick < next_tick:
+        if self.prev_tick < next_tick:
+            if self.arrow == 1:
                 return 1
-        elif self.arrow == 0:
-            if self.prev_tick == next_tick:
-                return 1
-        elif self.arrow == -1:
-            if self.prev_tick < next_tick:
+        # elif self.prev_tick == next_tick:
+        #     if self.arrow == 0:
+        #         return 1
+        elif self.prev_tick > next_tick:
+            if self.arrow == -1:
                 return 1
         return -1
 
@@ -75,6 +75,7 @@ class StocksGeneratorEnv:
         next_state = self.calc_next_state(action)
         reward = self.calc_reward(next_tick=next_state[0])
         done = self.calc_done()
+        self.prev_tick = next_state[0]
         return next_state, reward, done
 
     def render(self, returns=None):
@@ -106,6 +107,13 @@ class StocksGeneratorEnv:
         plt.pause(0.001)
 
 
+def greedy_strategy(state):
+    tick, arrow = state
+    if tick > 0:
+        return 2
+    return 0
+
+
 def main():
     env = StocksGeneratorEnv()
     state = env.reset()
@@ -118,6 +126,7 @@ def main():
         while not done:
             counter += 1
             action = env.sample_action()
+            # action = greedy_strategy(state)
             next_state, reward, done = env.step(action)
 
             # stats
@@ -146,5 +155,5 @@ def main():
 
 if __name__ == '__main__':
     EPISODES = 100
-    PLOT_PER = 10
+    PLOT_PER = 1
     main()

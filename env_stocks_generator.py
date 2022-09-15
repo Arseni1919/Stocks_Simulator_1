@@ -1,15 +1,150 @@
+import numpy as np
 
+from globals import *
 
 
 class StocksGeneratorEnv:
-    def __init__(self):
+    def __init__(self, n_actions=3):
+        self.n_actions = n_actions
+        self.action_space = list(range(self.n_actions))
+        self.state_space = [0]
+        self.ticks = []
+        self.max_length = 200
+        self.data = np.sin(np.arange(self.max_length)/10)
+        self.prev_tick = 0
+        self.arrow = 0
+        self.arrows = []
+        # render
+        self.fig, self.axs = plt.subplots(1, 3)  # , figsize=(9, 3), sharey=True
+
+    def sample_action(self):
+        return random.choice(self.action_space)
+
+    def sample_state(self):
         pass
 
     def reset(self):
-        pass
+        tick = self.data[0]
+        self.ticks = [tick]
+        self.arrow = 0
+        self.arrows = []
+        self.arrows.append([len(self.ticks) - 1, tick, self.arrow])
+        self.prev_tick = tick
+        state = [tick, self.arrow]
+        return state
 
-    def step(self):
-        pass
+    def calc_arrow(self, action, next_tick):
+        prev_arrow = self.arrow
+        if action == 0:
+            self.arrow = -1
+        elif action == 1:
+            self.arrow = 0
+        elif action == 2:
+            self.arrow = 1
+        else:
+            raise RuntimeError('wrong arrow')
+        if prev_arrow != self.arrow:
+            self.arrows.append([len(self.ticks) - 1, next_tick, self.arrow])
 
-    def render(self):
-        pass
+    def calc_next_state(self, action):
+        data_index = len(self.ticks)
+        next_tick = self.data[data_index]
+        self.ticks.append(next_tick)
+        self.calc_arrow(action, next_tick)
+        next_state = [next_tick, self.arrow]
+        return next_state
+
+    def calc_reward(self, next_tick):
+        if self.arrow == 1:
+            if self.prev_tick < next_tick:
+                return 1
+        elif self.arrow == 0:
+            if self.prev_tick == next_tick:
+                return 1
+        elif self.arrow == -1:
+            if self.prev_tick < next_tick:
+                return 1
+        return -1
+
+    def calc_done(self):
+        done = len(self.ticks) == self.max_length
+        return done
+
+    def step(self, action):
+
+        next_state = self.calc_next_state(action)
+        reward = self.calc_reward(next_tick=next_state[0])
+        done = self.calc_done()
+        return next_state, reward, done
+
+    def render(self, returns=None):
+        for ax_i in self.axs:
+            ax_i.cla()
+
+        # self.axs[0]
+        self.axs[0].set_xlim([0, self.max_length])
+        self.axs[0].set_ylim([-1, 1])
+        self.axs[0].plot(self.ticks, c='k')
+        ups_x = [i[0] for i in self.arrows if i[2] == 1]
+        ups_y = [i[1] for i in self.arrows if i[2] == 1]
+        downs_x = [i[0] for i in self.arrows if i[2] == -1]
+        downs_y = [i[1] for i in self.arrows if i[2] == -1]
+        self.axs[0].scatter(ups_x, ups_y, marker='^', c='g')
+        self.axs[0].scatter(downs_x, downs_y, marker='v', c='r')
+        self.axs[0].set_title('Stock')
+
+        # self.axs[1]
+        self.axs[1].set_title('Total Reward')
+        self.axs[1].set_xlim([0, self.max_length])
+        if returns:
+            self.axs[1].plot(returns)
+
+        # self.axs[2]
+        self.axs[2].set_title('Loss')
+        # self.axs[2].set_xlim([0, self.max_length])
+
+        plt.pause(0.001)
+
+
+def main():
+    env = StocksGeneratorEnv()
+    state = env.reset()
+    done = False
+
+    for episode in range(EPISODES):
+        counter = 0
+        total_return = 0
+        returns = []
+        while not done:
+            counter += 1
+            action = env.sample_action()
+            next_state, reward, done = env.step(action)
+
+            # stats
+            total_return += reward
+            returns.append(total_return)
+
+            # Learning
+            pass
+
+            state = next_state
+
+            # print + plot
+            print(f'\r[ep. {episode}, step {counter}] return: {total_return}, state: {state}', end='')
+            if counter % PLOT_PER == 0:
+                env.render(returns)
+
+        # End of episode
+        state = env.reset()
+        done = False
+
+        # print + plot
+        print()
+
+    plt.close()
+
+
+if __name__ == '__main__':
+    EPISODES = 100
+    PLOT_PER = 10
+    main()

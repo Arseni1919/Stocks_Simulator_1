@@ -107,16 +107,18 @@ class StocksGeneratorEnv:
         plt.pause(0.001)
 
 
-def greedy_strategy(state):
+def greedy_strategy(prev_state, state):
+    prev_tick, prev_arrow = prev_state
     tick, arrow = state
-    if tick > 0:
-        return 2
+    if tick > prev_tick:
+        return 1
     return 0
 
 
 def main():
     env = StocksGeneratorEnv()
     state = env.reset()
+    prev_state = state
     done = False
 
     for episode in range(EPISODES):
@@ -125,8 +127,8 @@ def main():
         returns = []
         while not done:
             counter += 1
-            action = env.sample_action()
-            # action = greedy_strategy(state)
+            # action = env.sample_action()
+            action = greedy_strategy(prev_state, state)
             next_state, reward, done = env.step(action)
 
             # stats
@@ -136,6 +138,7 @@ def main():
             # Learning
             pass
 
+            prev_state = state
             state = next_state
 
             # print + plot
@@ -145,6 +148,7 @@ def main():
 
         # End of episode
         state = env.reset()
+        prev_state = state
         done = False
 
         # print + plot
@@ -155,5 +159,5 @@ def main():
 
 if __name__ == '__main__':
     EPISODES = 100
-    PLOT_PER = 1
+    PLOT_PER = 10
     main()

@@ -125,8 +125,8 @@ def main():
         returns = []
         while not done:
             counter += 1
-            # action = env.sample_action()
-            action = greedy_strategy(prev_state, state)
+            action = env.sample_action()
+            # action = greedy_strategy(prev_state, state)
             next_state, reward, done = env.step(action)
 
             # stats
@@ -157,5 +157,5 @@ def main():
 
 if __name__ == '__main__':
     EPISODES = 100
-    PLOT_PER = 10
+    PLOT_PER = 1
     main()

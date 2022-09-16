@@ -1,7 +1,8 @@
 from globals import *
 
 
-def test_alg(env, alg, episodes=100, plot_per=1):
+def test_alg(env, alg, episodes=100, plot_per=1, random_seed=True, seed=123):
+
     state = env.reset()
     done = False
 

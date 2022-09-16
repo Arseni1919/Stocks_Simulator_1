@@ -28,7 +28,7 @@ class StocksGeneratorEnv:
         self.arrows = []
         self.arrows.append([len(self.ticks) - 1, tick, self.arrow])
         self.prev_tick = tick
-        state = [tick, self.arrow]
+        state = [self.prev_tick, tick, self.arrow]
         return state
 
     def calc_arrow(self, action, next_tick):
@@ -49,7 +49,7 @@ class StocksGeneratorEnv:
         next_tick = self.data[data_index]
         self.ticks.append(next_tick)
         self.calc_arrow(action, next_tick)
-        next_state = [next_tick, self.arrow]
+        next_state = [self.prev_tick, next_tick, self.arrow]
         return next_state
 
     def calc_reward(self, next_tick):
@@ -71,12 +71,13 @@ class StocksGeneratorEnv:
     def step(self, action):
 
         next_state = self.calc_next_state(action)
-        reward = self.calc_reward(next_tick=next_state[0])
+        prev_tick, curr_tick, arrow = next_state
+        reward = self.calc_reward(next_tick=curr_tick)
         done = self.calc_done()
-        self.prev_tick = next_state[0]
+        self.prev_tick = curr_tick
         return next_state, reward, done
 
-    def render(self, returns=None):
+    def render(self, returns=None, alg=None):
         for ax_i in self.axs:
             ax_i.cla()
 
@@ -105,10 +106,9 @@ class StocksGeneratorEnv:
         plt.pause(0.001)
 
 
-def greedy_strategy(prev_state, state):
-    prev_tick, prev_arrow = prev_state
-    tick, arrow = state
-    if tick > prev_tick:
+def greedy_strategy(state):
+    prev_tick, curr_tick, arrow = state
+    if curr_tick > prev_tick:
         return 1
     return 0
 
@@ -116,7 +116,6 @@ def greedy_strategy(prev_state, state):
 def main():
     env = StocksGeneratorEnv()
     state = env.reset()
-    prev_state = state
     done = False
 
     for episode in range(EPISODES):
@@ -125,8 +124,8 @@ def main():
         returns = []
         while not done:
             counter += 1
-            action = env.sample_action()
-            # action = greedy_strategy(prev_state, state)
+            # action = env.sample_action()
+            action = greedy_strategy(state)
             next_state, reward, done = env.step(action)
 
             # stats
@@ -136,7 +135,6 @@ def main():
             # Learning
             pass
 
-            prev_state = state
             state = next_state
 
             # print + plot
@@ -146,7 +144,6 @@ def main():
 
         # End of episode
         state = env.reset()
-        prev_state = state
         done = False
 
         # print + plot

@@ -9,7 +9,13 @@ class SimpleModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.model = nn.Sequential(
-            nn.Linear(3, 1, dtype=torch.double)
+            nn.Linear(3, 10, dtype=torch.double),
+            nn.ReLU(),
+            nn.Linear(10, 10, dtype=torch.double),
+            nn.ReLU(),
+            nn.Linear(10, 10, dtype=torch.double),
+            nn.ReLU(),
+            nn.Linear(10, 1, dtype=torch.double)
         )
 
     def forward(self, x):
@@ -20,19 +26,56 @@ class SimpleModel(nn.Module):
 class SarsaAlg:
     def __init__(self, env):
         self.env = env
-        self.nn_model = SimpleModel()
+        self.EPSILON = 0.2
+        self.LR = 0.01
+        self.GAMMA = 0.9
+        self.v_func = SimpleModel()
+        self.criterion = nn.MSELoss()  # mean-squared error for regression
+        self.optimizer = torch.optim.Adam(self.v_func.parameters(), lr=self.LR)
+
+        # for plots
+        self.losses = []
 
     def choose_action(self, state):
-        return self.env.sample_action()
-        # prev_tick, curr_tick, arrow = state
-        # if curr_tick > prev_tick:
-        #     return 1
-        # return 0
+        # return self.env.sample_action()
+        prev_tick, curr_tick, arrow = state
+        if curr_tick > prev_tick:
+            return 1
+        return 0
 
     def learning_step(self, state, action, next_state, reward, done):
+        if done:
+            G = reward
+            G = torch.unsqueeze(torch.tensor(G, dtype=torch.double), 0)
+            G = torch.unsqueeze(torch.tensor(G), 0)
+            print(G)
+        else:
+            t_next_state = torch.unsqueeze(torch.tensor(next_state), 0)
+            t_output = self.v_func(t_next_state)
+            G = reward + self.GAMMA * t_output
         t_state = torch.unsqueeze(torch.tensor(state), 0)
-        t_output = self.nn_model(t_state)
-        print(t_output)
+        t_output = self.v_func(t_state)
+        loss = self.criterion(t_output, G)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        self.losses.append(loss.item())
+
+        # outputs = net(i_batch)  # forward pass
+        # optimizer.zero_grad()  # caluclate the gradient, manually setting to 0
+        #
+        # # obtain the loss function
+        # y_train_tensor = y_train_tensors[i]
+        # loss = criterion(outputs, y_train_tensor)
+        #
+        # loss.backward()  # calculates the loss of the loss function
+        #
+        # optimizer.step()  # improve from loss, i.e backprop
+        #
+        # y_hat.append(outputs.item())
+        # y_real.append(y_train_tensor.item())
+        # losses.append(loss.item())
+        # print(f"\rEpoch-batch: {epoch}-{i}, loss:{loss.item() : 1.5f}", end='')
 
 
 def main():

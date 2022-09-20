@@ -41,12 +41,4 @@ def test_alg(env, alg, episodes=100, plot_per=1, random_seed=True, seed=123):
     plt.close()
 
 
-def main():
-    pass
-    # test_alg()
-
-
-if __name__ == '__main__':
-    main()
-
 

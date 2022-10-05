@@ -36,6 +36,8 @@ class SarsaAlg:
 
         # for plots
         self.losses = []
+        self.predictions = []
+        self.g_values = []
 
     def choose_action(self, state):
         # return self.env.sample_action()
@@ -66,6 +68,8 @@ class SarsaAlg:
         loss.backward()
         self.optimizer.step()
         self.losses.append(loss.item())
+        self.g_values.append(G.item())
+        self.predictions.append(t_output.item())
 
         # outputs = net(i_batch)  # forward pass
         # optimizer.zero_grad()  # caluclate the gradient, manually setting to 0

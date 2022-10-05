@@ -13,7 +13,7 @@ class StocksGeneratorEnv:
         self.arrow = 0
         self.arrows = []
         # render
-        self.fig, self.axs = plt.subplots(1, 3)  # , figsize=(9, 3), sharey=True
+        self.fig, self.axs = plt.subplots(1, 3, figsize=(10, 4))  # , figsize=(9, 3), sharey=True
 
     def sample_action(self):
         return random.choice(self.action_space)
@@ -97,18 +97,23 @@ class StocksGeneratorEnv:
         self.axs[1].set_title('Total Reward')
         self.axs[1].set_xlim([0, self.max_length])
         if returns:
-            self.axs[1].plot(returns)
+            self.axs[1].plot(returns, label='actual return')
+        if alg:
+            self.axs[1].plot(alg.predictions, label='predictions')
+            self.axs[1].plot(alg.g_values, label='g_values')
+        self.axs[1].legend()
 
         # self.axs[2]
         self.axs[2].set_title('Loss')
-        self.axs[2].plot(alg.losses)
+        if alg:
+            self.axs[2].plot(alg.losses)
         # self.axs[2].set_xlim([0, self.max_length])
 
         plt.pause(0.001)
 
 
 def greedy_strategy(state):
-    prev_tick, curr_tick, arrow = state
+    prev_tick, curr_tick, data_index, arrow = state
     if curr_tick > prev_tick:
         return 1
     return 0

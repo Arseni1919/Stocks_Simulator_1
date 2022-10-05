@@ -9,7 +9,8 @@ class SimpleModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.model = nn.Sequential(
-            nn.Linear(3, 10, dtype=torch.double),
+            # nn.Linear(5, 1, dtype=torch.double),
+            nn.Linear(5, 10, dtype=torch.double),
             nn.ReLU(),
             nn.Linear(10, 10, dtype=torch.double),
             nn.ReLU(),
@@ -38,22 +39,27 @@ class SarsaAlg:
 
     def choose_action(self, state):
         # return self.env.sample_action()
-        prev_tick, curr_tick, arrow = state
+        prev_tick, curr_tick, time_index, arrow = state
         if curr_tick > prev_tick:
             return 1
         return 0
 
     def learning_step(self, state, action, next_state, reward, done):
-        if done:
-            G = reward
-            G = torch.unsqueeze(torch.tensor(G, dtype=torch.double), 0)
-            G = torch.unsqueeze(torch.tensor(G), 0)
-            print(G)
-        else:
-            t_next_state = torch.unsqueeze(torch.tensor(next_state), 0)
-            t_output = self.v_func(t_next_state)
-            G = reward + self.GAMMA * t_output
-        t_state = torch.unsqueeze(torch.tensor(state), 0)
+        G = reward
+        G = torch.unsqueeze(torch.tensor(G, dtype=torch.double), 0)
+        G = torch.unsqueeze(torch.tensor(G), 0)
+        # if done:
+        #     G = reward
+        #     G = torch.unsqueeze(torch.tensor(G, dtype=torch.double), 0)
+        #     G = torch.unsqueeze(torch.tensor(G), 0)
+        #     # print(G)
+        # else:
+        #     t_next_state = torch.unsqueeze(torch.tensor(next_state), 0)
+        #     t_output = self.v_func(t_next_state)
+        #     G = reward + self.GAMMA * t_output
+        i_state = state[:]
+        i_state.append(action)
+        t_state = torch.unsqueeze(torch.tensor(i_state), 0)
         t_output = self.v_func(t_state)
         loss = self.criterion(t_output, G)
         self.optimizer.zero_grad()
@@ -81,7 +87,7 @@ class SarsaAlg:
 def main():
     env = StocksGeneratorEnv()
     sarsa_alg = SarsaAlg(env=env)
-    test_alg(env=env, alg=sarsa_alg, episodes=100, plot_per=50, random_seed=random_seed, seed=seed)
+    test_alg(env=env, alg=sarsa_alg, episodes=100, plot_per=10, random_seed=random_seed, seed=seed)
 
 
 if __name__ == '__main__':

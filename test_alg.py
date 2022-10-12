@@ -21,7 +21,7 @@ def test_alg(env, alg, episodes=100, plot_per=1, random_seed=True, seed=123):
             returns.append(total_return)
 
             # Learning
-            alg.learning_step(state, action, next_state, reward, done)
+            alg.learning_step(state, action, next_state, reward, done, total_return)
 
             # prep for next state
             state = next_state
@@ -34,6 +34,7 @@ def test_alg(env, alg, episodes=100, plot_per=1, random_seed=True, seed=123):
         # End of episode
         state = env.reset()
         done = False
+        alg.stats_reset()
 
         # print + plot
         print()

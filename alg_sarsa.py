@@ -10,11 +10,21 @@ class SimpleModel(nn.Module):
         super().__init__()
         self.model = nn.Sequential(
             # nn.Linear(5, 1, dtype=torch.double),
-            nn.Linear(5, 10, dtype=torch.double),
+            nn.Linear(5, 100, dtype=torch.double),
             nn.ReLU(),
-            nn.Linear(10, 10, dtype=torch.double),
+            nn.Linear(100, 100, dtype=torch.double),
             nn.ReLU(),
-            nn.Linear(10, 10, dtype=torch.double),
+            nn.Linear(100, 100, dtype=torch.double),
+            nn.ReLU(),
+            nn.Linear(100, 100, dtype=torch.double),
+            nn.ReLU(),
+            nn.Linear(100, 100, dtype=torch.double),
+            nn.ReLU(),
+            nn.Linear(100, 100, dtype=torch.double),
+            nn.ReLU(),
+            nn.Linear(100, 100, dtype=torch.double),
+            nn.ReLU(),
+            nn.Linear(100, 10, dtype=torch.double),
             nn.ReLU(),
             nn.Linear(10, 1, dtype=torch.double)
         )
@@ -28,8 +38,8 @@ class SarsaAlg:
     def __init__(self, env):
         self.env = env
         self.EPSILON = 0.2
-        self.LR = 0.01
-        self.GAMMA = 0.9
+        self.LR = 0.001
+        self.GAMMA = 0.9999
         self.v_func = SimpleModel()
         self.criterion = nn.MSELoss()  # mean-squared error for regression
         self.optimizer = torch.optim.Adam(self.v_func.parameters(), lr=self.LR)
@@ -39,26 +49,46 @@ class SarsaAlg:
         self.predictions = []
         self.g_values = []
 
-    def choose_action(self, state):
-        # return self.env.sample_action()
+    def pick_action_1(self, state):
+        return self.env.sample_action()
+
+    def pick_action_2(self, state):
         prev_tick, curr_tick, time_index, arrow = state
         if curr_tick > prev_tick:
             return 1
         return 0
 
-    def learning_step(self, state, action, next_state, reward, done):
-        G = reward
-        G = torch.unsqueeze(torch.tensor(G, dtype=torch.double), 0)
-        G = torch.unsqueeze(torch.tensor(G), 0)
-        # if done:
-        #     G = reward
-        #     G = torch.unsqueeze(torch.tensor(G, dtype=torch.double), 0)
-        #     G = torch.unsqueeze(torch.tensor(G), 0)
-        #     # print(G)
-        # else:
-        #     t_next_state = torch.unsqueeze(torch.tensor(next_state), 0)
-        #     t_output = self.v_func(t_next_state)
-        #     G = reward + self.GAMMA * t_output
+    def pick_action_3(self, state):
+        prev_tick, curr_tick, time_index, arrow = state
+        if time_index > 50:
+            return 1
+        return 0
+
+    def choose_action(self, state):
+        # return self.pick_action_1(state)
+        # return self.pick_action_2(state)
+        return self.pick_action_3(state)
+
+    def stats_reset(self):
+        # self.losses = []
+        self.predictions = []
+        self.g_values = []
+
+    def learning_step(self, state, action, next_state, reward, done, total_return):
+        # G = total_return
+        # G = torch.unsqueeze(torch.tensor(G, dtype=torch.double), 0)
+        # G = torch.unsqueeze(torch.tensor(G), 0)
+        if done:
+            G = total_return
+            G = torch.unsqueeze(torch.tensor(G, dtype=torch.double), 0)
+            G = torch.unsqueeze(torch.tensor(G), 0)
+            # print(G)
+        else:
+            i_next_state = next_state[:]
+            i_next_state.append(self.choose_action(next_state))
+            t_next_state = torch.unsqueeze(torch.tensor(i_next_state), 0)
+            t_output = self.v_func(t_next_state)
+            G = total_return + self.GAMMA * t_output
         i_state = state[:]
         i_state.append(action)
         t_state = torch.unsqueeze(torch.tensor(i_state), 0)

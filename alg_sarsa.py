@@ -9,22 +9,22 @@ class SimpleModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.model = nn.Sequential(
-            # nn.Linear(5, 1, dtype=torch.double),
-            nn.Linear(5, 100, dtype=torch.double),
-            nn.ReLU(),
-            nn.Linear(100, 100, dtype=torch.double),
-            nn.ReLU(),
-            nn.Linear(100, 100, dtype=torch.double),
-            nn.ReLU(),
-            nn.Linear(100, 100, dtype=torch.double),
-            nn.ReLU(),
-            nn.Linear(100, 100, dtype=torch.double),
-            nn.ReLU(),
-            nn.Linear(100, 100, dtype=torch.double),
-            nn.ReLU(),
-            nn.Linear(100, 100, dtype=torch.double),
-            nn.ReLU(),
-            nn.Linear(100, 10, dtype=torch.double),
+            nn.Linear(5, 10, dtype=torch.double),
+            # nn.Linear(5, 100, dtype=torch.double),
+            # nn.ReLU(),
+            # nn.Linear(100, 100, dtype=torch.double),
+            # nn.ReLU(),
+            # nn.Linear(100, 100, dtype=torch.double),
+            # nn.ReLU(),
+            # nn.Linear(100, 100, dtype=torch.double),
+            # nn.ReLU(),
+            # nn.Linear(100, 100, dtype=torch.double),
+            # nn.ReLU(),
+            # nn.Linear(100, 100, dtype=torch.double),
+            # nn.ReLU(),
+            # nn.Linear(100, 100, dtype=torch.double),
+            # nn.ReLU(),
+            # nn.Linear(100, 10, dtype=torch.double),
             nn.ReLU(),
             nn.Linear(10, 1, dtype=torch.double)
         )
@@ -93,10 +93,12 @@ class SarsaAlg:
         i_state.append(action)
         t_state = torch.unsqueeze(torch.tensor(i_state), 0)
         t_output = self.v_func(t_state)
+
         loss = self.criterion(t_output, G)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
+
         self.losses.append(loss.item())
         self.g_values.append(G.item())
         self.predictions.append(t_output.item())

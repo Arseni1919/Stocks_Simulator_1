@@ -28,7 +28,7 @@ class StocksGeneratorEnv:
         self.arrows = []
         self.arrows.append([len(self.ticks) - 1, tick, self.arrow])
         self.prev_tick = tick
-        state = [self.prev_tick, tick, 0, self.arrow]
+        state = self.calc_next_state(action=1, reset=True)
         return state
 
     def calc_arrow(self, action, next_tick):
@@ -44,7 +44,10 @@ class StocksGeneratorEnv:
         if prev_arrow != self.arrow:
             self.arrows.append([len(self.ticks) - 1, next_tick, self.arrow])
 
-    def calc_next_state(self, action):
+    def calc_next_state(self, action, reset=False):
+        if reset:
+            next_state = [self.data[0], self.data[0], 0, self.arrow]
+            return next_state
         data_index = len(self.ticks)
         next_tick = self.data[data_index]
         self.ticks.append(next_tick)

@@ -8,8 +8,9 @@
 
 ## Credits
 
-- [github (self) | Gym Env For Stock Trading](https://github.com/Arseni1919/gym-stocktrading)
-- [github (self) | gather game](https://github.com/Arseni1919/Gather_Game/blob/main/impl_env_gather.py)
-- [github (self) | NN with stocks](https://github.com/Arseni1919/Implementing_NN_Stocks)
+- [GitHub (self) | Gym Env For Stock Trading](https://github.com/Arseni1919/gym-stocktrading)
+- [GitHub (self) | gather game](https://github.com/Arseni1919/Gather_Game/blob/main/impl_env_gather.py)
+- [GitHub (self) | NN with stocks](https://github.com/Arseni1919/Implementing_NN_Stocks)
 - [mpl | markers](https://matplotlib.org/stable/api/markers_api.html)
-- []()
+- [alpaca | Trading Account](https://alpaca.markets/docs/api-references/trading-api/account/)
+- [tds | how to use alpaca](https://medium.com/@chris_42047/getting-started-with-the-alpaca-trading-apis-python-tutorial-226f4dca5d8a)

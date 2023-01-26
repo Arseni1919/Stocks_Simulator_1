@@ -136,7 +136,8 @@ class SinStockEnv:
         self.plot_asset_and_actions(self.ax[0, 0], info=info)
         # self.plot_volume(self.ax_volume, info=info)
         self.plot_rewards(self.ax[0, 1], info=info)
-        self.plot_rewards_differences(self.ax[1, 1], info=info)
+        # self.plot_rewards_differences(self.ax[1, 1], info=info)
+        self.plot_average(self.ax[1, 1], info=info)
         self.plot_variance(self.ax[1, 0], info=info)
         plt.pause(0.001)
 
@@ -178,14 +179,25 @@ class SinStockEnv:
         ax.set_title('Difference With and Without Fees')
 
     def plot_variance(self, ax, info):
-        ts = pd.Series(self.history_asset[:self.step_count])
+        # ts = pd.Series(self.history_asset[0:self.step_count])
+        ts = pd.Series(self.history_asset[1:self.step_count] - self.history_asset[0:self.step_count-1])
         # ts.rolling(window=60).mean()
         for window in [10, 40, 70, 100]:
             data = ts.rolling(window=window).std().to_numpy()
             ax.plot(data, label=f'w:{window}')
         self.set_xlims(ax)
         ax.legend()
-        ax.set_title('Asset Variance')
+        ax.set_title('Asset Residuals')
+
+    def plot_average(self, ax, info):
+        ts = pd.Series(self.history_asset[0:self.step_count])
+        # ts = pd.Series(self.history_asset[1:self.step_count] - self.history_asset[0:self.step_count-1])
+        for window in [10, 40, 70, 100]:
+            data = ts.rolling(window=window).mean().to_numpy()
+            ax.plot(data, label=f'w:{window}')
+        self.set_xlims(ax)
+        ax.legend()
+        ax.set_title('Asset Average')
 
     def set_xlims(self, ax):
         ax.set_xlim([0, self.max_steps])

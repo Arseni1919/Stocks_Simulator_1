@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from globals import *
 from env_stocks_generator import StocksGeneratorEnv
-from alg_sarsa import SarsaAlg
+# from alg_sarsa import SarsaAlg
 
 
 def test_alg(env, alg, episodes=100, plot_per=1, random_seed=True, seed=123):
@@ -57,8 +57,8 @@ def main():
     }))
 
     env = StocksGeneratorEnv()
-    sarsa_alg = SarsaAlg(env=env)
-    test_alg(env=env, alg=sarsa_alg, episodes=100, plot_per=10, random_seed=random_seed, seed=seed)
+    # sarsa_alg = SarsaAlg(env=env)
+    # test_alg(env=env, alg=sarsa_alg, episodes=100, plot_per=10, random_seed=random_seed, seed=seed)
 
 
 if __name__ == '__main__':

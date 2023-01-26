@@ -112,7 +112,7 @@ class StocksGeneratorEnv:
             self.axs[2].plot(alg.losses)
         # self.axs[2].set_xlim([0, self.max_length])
 
-        # plt.pause(0.001)
+        plt.pause(0.001)
 
         return self.fig
 

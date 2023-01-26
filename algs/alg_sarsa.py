@@ -1,8 +1,8 @@
 import torch
 
 from globals import *
-from env_stocks_generator import StocksGeneratorEnv
-from test_alg import test_alg
+# from env_stocks_generator import StocksGeneratorEnv
+# from alg_testing import test_alg
 
 
 class SimpleModel(nn.Module):
@@ -121,10 +121,10 @@ class SarsaAlg:
 
 
 def main():
-    env = StocksGeneratorEnv()
-    sarsa_alg = SarsaAlg(env=env)
-    test_alg(env=env, alg=sarsa_alg, episodes=100, plot_per=10, random_seed=random_seed, seed=seed)
-
+    # env = StocksGeneratorEnv()
+    # sarsa_alg = SarsaAlg(env=env)
+    # test_alg(env=env, alg=sarsa_alg, episodes=100, plot_per=10, random_seed=random_seed, seed=seed)
+    pass
 
 if __name__ == '__main__':
     # random_seed = True

@@ -3,6 +3,7 @@
 ## Algorithms
 
 ## 
+
 ### Episodic Semi-gradient Sarsa for Estimating $q = q*$
 
 ![](pics/semi_gradient_sarsa.png)

@@ -1,4 +1,4 @@
-# Stocks Simulator (version 1) !!!
+# Stocks Simulator 
 
 ## Algorithms
 

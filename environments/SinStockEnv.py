@@ -17,6 +17,7 @@ class SinStockEnv:
         self.history_volume = None
         self.history_actions = None
         self.history_rewards = None
+        self.history_rewards_fee = None
         self.in_hand = None
         self.last_purchased = None
 
@@ -39,6 +40,7 @@ class SinStockEnv:
         self.history_volume = np.zeros((self.max_steps,))
         self.history_actions = np.zeros((self.max_steps,))
         self.history_rewards = np.zeros((self.max_steps,))
+        self.history_rewards_fee = np.zeros((self.max_steps,))
 
         observation = self.generate_next_observation()
         info = {}
@@ -58,6 +60,7 @@ class SinStockEnv:
         return observation
 
     def sample_action(self):
+        # return np.random.choice(self.action_space, p=[0.9, 0.05, 0.05])
         return np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])
 
     def filter_action(self, action):
@@ -70,26 +73,28 @@ class SinStockEnv:
                 reward = current_price - self.last_purchased
                 self.last_purchased = None
                 self.in_hand = 0
-                return reward
+                return reward, True
         if action == 1:
             if self.in_hand == -1:
+                self.in_hand = 0
                 reward = current_price - self.last_purchased
                 self.last_purchased = None
-                self.in_hand = 0
-                return reward
+                return reward, True
             if self.in_hand == 0:
-                self.last_purchased = current_price
                 self.in_hand = 1
-        if action == -1:
-            if self.in_hand == 0:
                 self.last_purchased = current_price
-                self.in_hand = -1
+                return 0, True
+        if action == -1:
             if self.in_hand == 1:
+                self.in_hand = 0
                 reward = current_price - self.last_purchased
                 self.last_purchased = None
-                self.in_hand = 0
-                return reward
-        return 0
+                return reward, True
+            if self.in_hand == 0:
+                self.in_hand = -1
+                self.last_purchased = current_price
+                return 0, True
+        return 0, False
 
     def step(self, action):
         """
@@ -102,7 +107,11 @@ class SinStockEnv:
         self.history_actions[self.step_count] = action
 
         # get reward
-        self.history_rewards[self.step_count] = self.calc_reward(action)
+        reward, executed = self.calc_reward(action)
+        if executed:
+            self.history_rewards[self.step_count] = reward
+            # self.history_rewards_fee[self.step_count] = reward - self.interest * np.abs(reward)
+            self.history_rewards_fee[self.step_count] = reward - 1
 
         # is it terminated / truncated?
         self.step_count += 1
@@ -127,14 +136,17 @@ class SinStockEnv:
         self.plot_asset_and_actions(self.ax[0, 0], info=info)
         # self.plot_volume(self.ax_volume, info=info)
         self.plot_rewards(self.ax[0, 1], info=info)
+        self.plot_rewards_differences(self.ax[1, 1], info=info)
+        self.plot_variance(self.ax[1, 0], info=info)
         plt.pause(0.001)
 
     def plot_asset_and_actions(self, ax, info):
         ax.plot(self.history_asset[:self.step_count], c='lightblue')
         buy_steps = np.where(self.history_actions[:self.step_count] == 1)
-        ax.scatter(buy_steps, self.history_asset[buy_steps], c='green', marker='^')
+        ax.scatter(buy_steps, self.history_asset[buy_steps], c='green', marker='^', label='long order')
         sell_steps = np.where(self.history_actions[:self.step_count] == -1)
-        ax.scatter(sell_steps, self.history_asset[sell_steps], c='red', marker='v')
+        ax.scatter(sell_steps, self.history_asset[sell_steps], c='red', marker='v', label='short order')
+        ax.legend()
         self.set_xlims(ax)
 
         if info is not None:
@@ -148,11 +160,32 @@ class SinStockEnv:
         ax.set_ylim(0, 1000)
 
     def plot_rewards(self, ax, info):
-        cumsum_rewards = np.cumsum(self.history_rewards[:self.step_count])
+        h_rewards = self.history_rewards[:self.step_count]
+        h_rewards_fee = self.history_rewards_fee[:self.step_count]
+        cumsum_rewards = np.cumsum(h_rewards)
         color = 'green' if cumsum_rewards[-1] > 0 else 'red'
-        ax.plot(cumsum_rewards, c=color, alpha=0.7)
+        ax.plot(cumsum_rewards, c=color, alpha=0.7, label='no fees')
+        ax.plot(np.cumsum(h_rewards_fee), '--', c='gray', alpha=0.7, label='with fees')
         self.set_xlims(ax)
+        ax.legend()
         ax.set_title('Cumulative Rewards')
+
+    def plot_rewards_differences(self, ax, info):
+        h_rewards = np.cumsum(self.history_rewards[:self.step_count])
+        h_rewards_fee = np.cumsum(self.history_rewards_fee[:self.step_count])
+        ax.plot(h_rewards - h_rewards_fee)
+        self.set_xlims(ax)
+        ax.set_title('Difference With and Without Fees')
+
+    def plot_variance(self, ax, info):
+        ts = pd.Series(self.history_asset[:self.step_count])
+        # ts.rolling(window=60).mean()
+        for window in [10, 40, 70, 100]:
+            data = ts.rolling(window=window).std().to_numpy()
+            ax.plot(data, label=f'w:{window}')
+        self.set_xlims(ax)
+        ax.legend()
+        ax.set_title('Asset Variance')
 
     def set_xlims(self, ax):
         ax.set_xlim([0, self.max_steps])

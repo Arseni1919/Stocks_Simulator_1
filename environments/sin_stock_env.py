@@ -171,7 +171,9 @@ class SinStockEnv:
         ax.cla()
         step_count = self.step_count if self.step_count >= 0 else self.max_steps - 1
         # ax.bar(np.arange(step_count), self.history_property[:self.step_count], alpha=0.5)
-        ax.plot(self.history_property[:self.step_count], alpha=0.7)
+        ax.plot(self.history_property[:self.step_count], c='brown', alpha=0.7)
+        ax.fill_between(np.arange(step_count), np.zeros(step_count), self.history_property[:self.step_count],
+                        color='coral', alpha=0.5)
         ax.set_yticks([-1, 0, 1])
         ax.set_yticklabels(['Short', 'Hold', 'Long'])
         self.set_xlims(ax)

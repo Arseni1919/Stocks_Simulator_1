@@ -58,7 +58,8 @@ class SinStockEnv:
         observation = {}
         prev_asset_value = 50 if self.step_count == 0 else self.history_asset[self.step_count - 1]
         sin_part = np.sin(self.step_count / 15)
-        self.history_asset[self.step_count] = prev_asset_value + sin_part + np.random.randint(-2, 3)
+        var = 4
+        self.history_asset[self.step_count] = prev_asset_value + sin_part + np.random.randint(-var, var+1)
         # prev_volume_value = 50 if self.step_count == 0 else self.history_volume[self.step_count - 1]
         self.history_volume[self.step_count] = sin_part * 5 + 5 + np.random.randint(1, 10)
         observation['asset'] = self.history_asset[self.step_count]
@@ -75,34 +76,45 @@ class SinStockEnv:
     def filter_action(self, action):
         pass
 
+    def bay_short(self, current_price):
+        self.in_hand = -1
+        self.last_purchased = current_price
+        return 0, True
+
+    def bay_long(self, current_price):
+        self.in_hand = 1
+        self.last_purchased = current_price
+        return 0, True
+
+    def sell_short(self, current_price):
+        self.in_hand = 0
+        reward = self.last_purchased - current_price
+        self.last_purchased = None
+        return reward, True
+
+    def sell_long(self, current_price):
+        self.in_hand = 0
+        reward = current_price - self.last_purchased
+        self.last_purchased = None
+        return reward, True
+
     def calc_reward(self, action):
         current_price = self.history_asset[self.step_count]
         if self.step_count + 1 == self.max_steps:
-            if self.in_hand in [-1, 1]:
-                reward = current_price - self.last_purchased
-                self.last_purchased = None
-                self.in_hand = 0
-                return reward, True
+            if self.in_hand == 1:
+                return self.sell_long(current_price)
+            if self.in_hand == -1:
+                return self.sell_short(current_price)
         if action == 1:
             if self.in_hand == -1:
-                self.in_hand = 0
-                reward = current_price - self.last_purchased
-                self.last_purchased = None
-                return reward, True
+                return self.sell_short(current_price)
             if self.in_hand == 0:
-                self.in_hand = 1
-                self.last_purchased = current_price
-                return 0, True
+                return self.bay_long(current_price)
         if action == -1:
             if self.in_hand == 1:
-                self.in_hand = 0
-                reward = current_price - self.last_purchased
-                self.last_purchased = None
-                return reward, True
+                return self.sell_long(current_price)
             if self.in_hand == 0:
-                self.in_hand = -1
-                self.last_purchased = current_price
-                return 0, True
+                return self.bay_short(current_price)
         return 0, False
 
     def step(self, action):
@@ -162,9 +174,14 @@ class SinStockEnv:
         sell_steps = np.where(self.history_actions[:self.step_count] == -1)
         ax.scatter(sell_steps, self.history_asset[sell_steps], c='red', marker='v', label='short order')
 
-        ts = pd.Series(self.history_asset[0:self.step_count])
-        data = ts.rolling(window=40).mean().to_numpy()
-        ax.plot(data, label=f'w: {40}')
+        if 'w1' in info:
+            ts = pd.Series(self.history_asset[0:self.step_count])
+            data = ts.rolling(window=info['w1']).mean().to_numpy()
+            ax.plot(data, label=f"w: {info['w1']}")
+
+            ts = pd.Series(self.history_asset[0:self.step_count])
+            data = ts.rolling(window=info['w2']).mean().to_numpy()
+            ax.plot(data, label=f"w: {info['w2']}")
 
         ax.legend()
         self.set_xlims(ax)

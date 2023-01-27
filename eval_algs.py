@@ -9,8 +9,8 @@ def main():
     plotter = PlotterBigExperiments()
     env = SinStockEnv()
     # alg = BuyLowSellHighAlg(env=env)
-    window_sizes = [10, 20, 30, 40, 50]
-    algorithms = [BuyLowSellHighAlg(env, window=w) for w in window_sizes]
+    window_sizes = [10, 20, 30, 40, 50, 60, 70]
+    algorithms = [BuyLowSellHighAlg(env, params={'w1': w, 'w2': 20}) for w in window_sizes]
     for episode in range(episodes):
         for alg_index, alg in enumerate(algorithms):
             observation, info = env.reset()

@@ -4,11 +4,13 @@ from environments.sin_stock_env import SinStockEnv
 
 class BuyLowSellHighAlg:
 
-    def __init__(self, env, to_plot=False, window=40):
+    def __init__(self, env, to_plot=False, params=None):
+        if params is None:
+            params = {'w1': 40, 'w2': 20}
         self.env = env
-        self.name = f'BLSH-{window}'
+        self.params = params
+        self.name = f'BLSH-{self.params["w1"]}-{self.params["w2"]}'
         self.to_plot = to_plot
-        self.window = window
         self.max_steps = self.env.max_steps
         self.history_asset = np.zeros((self.max_steps,))
         self.history_volume = np.zeros((self.max_steps,))
@@ -17,7 +19,6 @@ class BuyLowSellHighAlg:
         self.history_rewards_fee = np.zeros((self.max_steps,))
         self.history_property = np.zeros((self.max_steps,))
         self.history_termination = np.zeros((self.max_steps,))
-
 
         # for plots
         if self.to_plot:
@@ -29,17 +30,25 @@ class BuyLowSellHighAlg:
     def return_action(self, observation):
         action = 0
         step_count = observation['step_count']
-        if step_count > self.window + 2:
+        in_hand = observation['in_hand']
+        w1, w2 = self.params['w1'], self.params['w2']
+        if step_count > max(w1, w1) + 2:
             ts = pd.Series(self.history_asset[0:step_count])
-            data = ts.rolling(window=self.window).mean().to_numpy()
-            p1 = data[-1]
-            p2 = data[-2]
-            if p1 - p2 > 0:
-                action = 1
-            elif p1 == p2:
-                action = 0
-            else:
-                action = -1
+            data = ts.rolling(window=w1).mean().to_numpy()
+            data_sw = ts.rolling(window=w2).mean().to_numpy()
+            det_big = data[-1] - data[-2]
+            det_small = data_sw[-1] - data_sw[-2]
+            if in_hand == 0:
+                if det_big > 0 and det_small > 0:
+                    action = 1
+                if det_big < 0 and det_small < 0:
+                    action = -1
+            if in_hand == 1:
+                if det_big > 0 and det_small < 0:
+                    action = -1
+            if in_hand == -1:
+                if det_big < 0 and det_small > 0:
+                    action = 1
         return action
 
     def update(self, observation, action, reward, next_observation, terminated, truncated):
@@ -73,8 +82,9 @@ class BuyLowSellHighAlg:
 
 def main():
     episodes = 1
+    w1, w2 = 30, 20
     env = SinStockEnv()
-    alg = BuyLowSellHighAlg(env=env, to_plot=True)
+    alg = BuyLowSellHighAlg(env=env, to_plot=True, params={'w1': w1, 'w2': w2})
     observation, info = env.reset()
     for episode in range(episodes):
         for step in range(env.max_steps):
@@ -85,7 +95,7 @@ def main():
             observation = next_observation
             if step % 200 == 0 or step == env.max_steps - 1:
                 # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})
-                alg.render(info={'episode': episode, 'step': step})
+                alg.render(info={'episode': episode, 'step': step, 'w1': w1, 'w2': w2})
 
     plt.show()
 

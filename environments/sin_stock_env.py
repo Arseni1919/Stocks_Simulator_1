@@ -5,8 +5,8 @@ from globals import *
 
 
 class SinStockEnv:
-    def __init__(self, interest=0.001, to_plot=False):
-        self.interest = interest  # in percentage
+    def __init__(self, commission=0.001, to_plot=False):
+        self.commission = commission  # in percentage
         self.to_plot = to_plot
         self.name = 'SinStockEnv'
         self.action_space = np.array([-1, 0, 1])
@@ -117,10 +117,10 @@ class SinStockEnv:
         reward_fee = 0
         self.history_property[self.step_count] = self.in_hand
         if executed:
-            reward_fee = reward - 1
+            # reward_fee = reward - 1
+            reward_fee = reward - self.commission * self.history_asset[self.step_count]
             self.history_actions[self.step_count] = action
             self.history_rewards[self.step_count] = reward
-            # self.history_rewards_fee[self.step_count] = reward - self.interest * np.abs(reward)
             self.history_rewards_fee[self.step_count] = reward_fee
 
         # is it terminated / truncated?

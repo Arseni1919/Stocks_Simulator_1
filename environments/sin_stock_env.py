@@ -5,8 +5,9 @@ from globals import *
 
 
 class SinStockEnv:
-    def __init__(self, interest=0.02):
+    def __init__(self, interest=0.001, to_plot=False):
         self.interest = interest  # in percentage
+        self.to_plot = to_plot
         self.name = 'SinStockEnv'
         self.action_space = np.array([-1, 0, 1])
         self.last_action = -100
@@ -23,10 +24,11 @@ class SinStockEnv:
         self.last_purchased = None
 
         # for plots
-        self.subplot_rows = 2
-        self.subplot_cols = 3
-        self.fig, self.ax = plt.subplots(self.subplot_rows, self.subplot_cols, figsize=(14, 7))
-        self.ax_volume = self.ax[0, 0].twinx()
+        if self.to_plot:
+            self.subplot_rows = 2
+            self.subplot_cols = 3
+            self.fig, self.ax = plt.subplots(self.subplot_rows, self.subplot_cols, figsize=(14, 7))
+            self.ax_volume = self.ax[0, 0].twinx()
 
     def reset(self):
         """
@@ -44,7 +46,7 @@ class SinStockEnv:
         self.history_rewards_fee = np.zeros((self.max_steps,))
         self.history_property = np.zeros((self.max_steps,))
 
-        observation = self.generate_next_observation()
+        observation = self.generate_next_observation(reward_fee=0)
         info = {}
         return observation, info
 
@@ -52,15 +54,18 @@ class SinStockEnv:
         if self.step_count == -1:
             raise RuntimeError('Do a resset first!')
 
-    def generate_next_observation(self):
+    def generate_next_observation(self, reward_fee):
         observation = {}
         prev_asset_value = 50 if self.step_count == 0 else self.history_asset[self.step_count - 1]
         sin_part = np.sin(self.step_count / 15)
         self.history_asset[self.step_count] = prev_asset_value + sin_part + np.random.randint(-2, 3)
         # prev_volume_value = 50 if self.step_count == 0 else self.history_volume[self.step_count - 1]
         self.history_volume[self.step_count] = sin_part * 5 + 5 + np.random.randint(1, 10)
-        observation['SPY'] = self.history_asset[self.step_count]
-        observation['SPY_volume'] = self.history_volume[self.step_count]
+        observation['asset'] = self.history_asset[self.step_count]
+        observation['asset_volume'] = self.history_volume[self.step_count]
+        observation['step_count'] = self.step_count
+        observation['reward_fee'] = reward_fee
+        observation['in_hand'] = self.in_hand
         return observation
 
     def sample_action(self):
@@ -109,12 +114,14 @@ class SinStockEnv:
 
         # execute action + get reward
         reward, executed = self.calc_reward(action)
-        self.history_actions[self.step_count] = action
+        reward_fee = 0
         self.history_property[self.step_count] = self.in_hand
         if executed:
+            reward_fee = reward - 1
+            self.history_actions[self.step_count] = action
             self.history_rewards[self.step_count] = reward
             # self.history_rewards_fee[self.step_count] = reward - self.interest * np.abs(reward)
-            self.history_rewards_fee[self.step_count] = reward - 1
+            self.history_rewards_fee[self.step_count] = reward_fee
 
         # is it terminated / truncated?
         self.step_count += 1
@@ -123,7 +130,7 @@ class SinStockEnv:
             self.step_count = -1
 
         # get NEXT observation
-        observation = self.generate_next_observation()
+        observation = self.generate_next_observation(reward_fee=reward_fee)
 
         # gather info
         info = {}
@@ -135,17 +142,18 @@ class SinStockEnv:
 
     # For rendering ------------------------------------------------------------------------------- #
     def render(self, info=None):
-        self.cla_axes()
-        self.plot_asset_and_actions(self.ax[0, 0], info=info)
-        self.plot_volume(self.ax_volume, info=info)
-        self.plot_rewards(self.ax[0, 1], info=info)
-        self.plot_rewards_differences(self.ax[0, 2], info=info)
-        self.plot_property(self.ax[1, 0], info=info)
-        self.plot_variance(self.ax[1, 1], info=info)
-        self.plot_average(self.ax[1, 2], info=info)
-        if "alg_name" in info:
-            self.fig.suptitle(f'Alg: {info["alg_name"]}', fontsize=16)
-        plt.pause(0.001)
+        if self.to_plot:
+            self.cla_axes()
+            self.plot_asset_and_actions(self.ax[0, 0], info=info)
+            self.plot_volume(self.ax_volume, info=info)
+            self.plot_rewards(self.ax[0, 1], info=info)
+            self.plot_rewards_differences(self.ax[0, 2], info=info)
+            self.plot_property(self.ax[1, 0], info=info)
+            self.plot_variance(self.ax[1, 1], info=info)
+            self.plot_average(self.ax[1, 2], info=info)
+            if "alg_name" in info:
+                self.fig.suptitle(f'Alg: {info["alg_name"]}', fontsize=16)
+            plt.pause(0.001)
 
     def plot_asset_and_actions(self, ax, info):
         ax.plot(self.history_asset[:self.step_count], c='lightblue')
@@ -153,6 +161,11 @@ class SinStockEnv:
         ax.scatter(buy_steps, self.history_asset[buy_steps], c='green', marker='^', label='long order')
         sell_steps = np.where(self.history_actions[:self.step_count] == -1)
         ax.scatter(sell_steps, self.history_asset[sell_steps], c='red', marker='v', label='short order')
+
+        ts = pd.Series(self.history_asset[0:self.step_count])
+        data = ts.rolling(window=40).mean().to_numpy()
+        ax.plot(data, label=f'w: {40}')
+
         ax.legend()
         self.set_xlims(ax)
 
@@ -170,7 +183,6 @@ class SinStockEnv:
     def plot_property(self, ax, info):
         ax.cla()
         step_count = self.step_count if self.step_count >= 0 else self.max_steps - 1
-        # ax.bar(np.arange(step_count), self.history_property[:self.step_count], alpha=0.5)
         ax.plot(self.history_property[:self.step_count], c='brown', alpha=0.7)
         ax.fill_between(np.arange(step_count), np.zeros(step_count), self.history_property[:self.step_count],
                         color='coral', alpha=0.5)
@@ -198,10 +210,7 @@ class SinStockEnv:
         ax.set_title('Difference With and Without Fees')
 
     def plot_variance(self, ax, info):
-        # ts = pd.Series(self.history_asset[0:self.step_count])
-
         ts = pd.Series(self.history_asset[1:self.step_count] - self.history_asset[0:self.step_count-1])
-        # ts.rolling(window=60).mean()
         for window in [10, 40, 70, 100]:
             data = ts.rolling(window=window).std().to_numpy()
             ax.plot(data, label=f'w:{window}')
@@ -211,7 +220,6 @@ class SinStockEnv:
 
     def plot_average(self, ax, info):
         ts = pd.Series(self.history_asset[0:self.step_count])
-        # ts = pd.Series(self.history_asset[1:self.step_count] - self.history_asset[0:self.step_count-1])
         for window in [10, 40, 70, 100]:
             data = ts.rolling(window=window).mean().to_numpy()
             ax.plot(data, label=f'w:{window}')
@@ -224,21 +232,17 @@ class SinStockEnv:
 
     def cla_axes(self):
         self.ax_volume.cla()
-        if self.ax.ndim == 1:
-            for i_ax in self.ax:
-                i_ax.cla()
-        if self.ax.ndim == 2:
-            for row_ax in self.ax:
-                for col_ax in row_ax:
-                    col_ax.cla()
+        for ax_i in self.ax.reshape(-1):
+            ax_i.cla()
 
 
 def main():
     episodes = 1
-    env = SinStockEnv()
+    env = SinStockEnv(to_plot=True)
     observation, info = env.reset()
     for episode in range(episodes):
         for step in range(env.max_steps):
+            print(f'\r{episode=} | {step=}', end='')
             action = env.sample_action()
             env.step(action)
             if step % 200 == 0 or step == env.max_steps - 1:
@@ -282,6 +286,16 @@ if __name__ == '__main__':
 #     def render(self):
 #         pass
 
+
+# def cla_axes(self):
+#     self.ax_volume.cla()
+#     if self.ax.ndim == 1:
+#         for i_ax in self.ax:
+#             i_ax.cla()
+#     if self.ax.ndim == 2:
+#         for row_ax in self.ax:
+#             for col_ax in row_ax:
+#                 col_ax.cla()
 
 
 

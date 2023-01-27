@@ -18,12 +18,13 @@ class SinStockEnv:
         self.history_actions = None
         self.history_rewards = None
         self.history_rewards_fee = None
+        self.history_property = None
         self.in_hand = None
         self.last_purchased = None
 
         # for plots
         self.subplot_rows = 2
-        self.subplot_cols = 2
+        self.subplot_cols = 3
         self.fig, self.ax = plt.subplots(self.subplot_rows, self.subplot_cols, figsize=(14, 7))
         self.ax_volume = self.ax[0, 0].twinx()
 
@@ -41,6 +42,7 @@ class SinStockEnv:
         self.history_actions = np.zeros((self.max_steps,))
         self.history_rewards = np.zeros((self.max_steps,))
         self.history_rewards_fee = np.zeros((self.max_steps,))
+        self.history_property = np.zeros((self.max_steps,))
 
         observation = self.generate_next_observation()
         info = {}
@@ -53,8 +55,10 @@ class SinStockEnv:
     def generate_next_observation(self):
         observation = {}
         prev_asset_value = 50 if self.step_count == 0 else self.history_asset[self.step_count - 1]
-        self.history_asset[self.step_count] = prev_asset_value + np.random.randint(-2, 3)
-        self.history_volume[self.step_count] = np.random.randint(10, 100)
+        sin_part = np.sin(self.step_count / 15)
+        self.history_asset[self.step_count] = prev_asset_value + sin_part + np.random.randint(-2, 3)
+        # prev_volume_value = 50 if self.step_count == 0 else self.history_volume[self.step_count - 1]
+        self.history_volume[self.step_count] = sin_part * 5 + 5 + np.random.randint(1, 10)
         observation['SPY'] = self.history_asset[self.step_count]
         observation['SPY_volume'] = self.history_volume[self.step_count]
         return observation
@@ -103,11 +107,10 @@ class SinStockEnv:
         self.reset_check()
         observation, reward, terminated, truncated, info = {}, 0, False, False, {}
 
-        # execute action
-        self.history_actions[self.step_count] = action
-
-        # get reward
+        # execute action + get reward
         reward, executed = self.calc_reward(action)
+        self.history_actions[self.step_count] = action
+        self.history_property[self.step_count] = self.in_hand
         if executed:
             self.history_rewards[self.step_count] = reward
             # self.history_rewards_fee[self.step_count] = reward - self.interest * np.abs(reward)
@@ -134,11 +137,14 @@ class SinStockEnv:
     def render(self, info=None):
         self.cla_axes()
         self.plot_asset_and_actions(self.ax[0, 0], info=info)
-        # self.plot_volume(self.ax_volume, info=info)
+        self.plot_volume(self.ax_volume, info=info)
         self.plot_rewards(self.ax[0, 1], info=info)
-        # self.plot_rewards_differences(self.ax[1, 1], info=info)
-        self.plot_average(self.ax[1, 1], info=info)
-        self.plot_variance(self.ax[1, 0], info=info)
+        self.plot_rewards_differences(self.ax[0, 2], info=info)
+        self.plot_property(self.ax[1, 0], info=info)
+        self.plot_variance(self.ax[1, 1], info=info)
+        self.plot_average(self.ax[1, 2], info=info)
+        if "alg_name" in info:
+            self.fig.suptitle(f'Alg: {info["alg_name"]}', fontsize=16)
         plt.pause(0.001)
 
     def plot_asset_and_actions(self, ax, info):
@@ -157,8 +163,19 @@ class SinStockEnv:
 
     def plot_volume(self, ax, info):
         ax.cla()
-        ax.bar(np.arange(self.step_count), self.history_volume[:self.step_count], alpha=0.2)
-        ax.set_ylim(0, 1000)
+        step_count = self.step_count if self.step_count >= 0 else self.max_steps - 1
+        ax.bar(np.arange(step_count), self.history_volume[:self.step_count], alpha=0.2)
+        ax.set_ylim(0, 50)
+
+    def plot_property(self, ax, info):
+        ax.cla()
+        step_count = self.step_count if self.step_count >= 0 else self.max_steps - 1
+        # ax.bar(np.arange(step_count), self.history_property[:self.step_count], alpha=0.5)
+        ax.plot(self.history_property[:self.step_count], alpha=0.7)
+        ax.set_yticks([-1, 0, 1])
+        ax.set_yticklabels(['Short', 'Hold', 'Long'])
+        self.set_xlims(ax)
+        ax.set_title('In Hand')
 
     def plot_rewards(self, ax, info):
         h_rewards = self.history_rewards[:self.step_count]
@@ -180,6 +197,7 @@ class SinStockEnv:
 
     def plot_variance(self, ax, info):
         # ts = pd.Series(self.history_asset[0:self.step_count])
+
         ts = pd.Series(self.history_asset[1:self.step_count] - self.history_asset[0:self.step_count-1])
         # ts.rolling(window=60).mean()
         for window in [10, 40, 70, 100]:
@@ -221,12 +239,10 @@ def main():
         for step in range(env.max_steps):
             action = env.sample_action()
             env.step(action)
-            if step % 100 == 0 or step == env.max_steps - 1:
+            if step % 200 == 0 or step == env.max_steps - 1:
                 env.render(info={'episode': episode, 'step': step})
 
     plt.show()
-
-
 
 
 if __name__ == '__main__':

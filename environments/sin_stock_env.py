@@ -274,38 +274,6 @@ if __name__ == '__main__':
     main()
 
 
-
-
-# class Env:
-#     def __init__(self):
-#         self.name = 'SinStockEnv'
-#         self.needed_reset = True
-#         self.action_space = []
-#         self.state_space = []
-#
-#     def reset(self):
-#         """
-#         :return: observation, info
-#         """
-#         self.needed_reset = False
-#
-#     def sample_action(self):
-#         pass
-#
-#     def step(self):
-#         """
-#         :return: observation, reward, terminated, truncated, info
-#         """
-#         if self.needed_reset:
-#             pass
-#
-#     def close(self):
-#         pass
-#
-#     def render(self):
-#         pass
-
-
 # def cla_axes(self):
 #     self.ax_volume.cla()
 #     if self.ax.ndim == 1:

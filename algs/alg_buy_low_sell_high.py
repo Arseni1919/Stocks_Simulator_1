@@ -106,15 +106,3 @@ if __name__ == '__main__':
     main()
 
 
-# class Alg:
-#
-#     def __init__(self, env):
-#         self.env = env
-#         self.name = 'Alg'
-#
-#     def return_action(self, observation):
-#         return self.env.sample_action()
-#
-#     def update(self):
-#         pass
-

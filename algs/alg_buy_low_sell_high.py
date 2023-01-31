@@ -1,10 +1,12 @@
 from globals import *
 from environments.sin_stock_env import SinStockEnv
+from alg_meta_class import MetaAlg
 
 
-class BuyLowSellHighAlg:
+class BuyLowSellHighAlg(MetaAlg):
 
     def __init__(self, env, to_plot=False, params=None):
+        super().__init__()
         if params is None:
             params = {'w1': 40, 'w2': 20}
         self.env = env
@@ -82,7 +84,7 @@ class BuyLowSellHighAlg:
 
 def main():
     episodes = 1
-    w1, w2 = 30, 20
+    w1, w2 = 30, 10
     env = SinStockEnv()
     alg = BuyLowSellHighAlg(env=env, to_plot=True, params={'w1': w1, 'w2': w2})
     observation, info = env.reset()

@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+from env_meta_class import MetaEnv
 from globals import *
 
 
-class SinStockEnv:
+class SinStockEnv(MetaEnv):
     def __init__(self, commission=0.001, to_plot=False):
+        super().__init__()
         self.commission = commission  # in percentage
         self.to_plot = to_plot
         self.name = 'SinStockEnv'
@@ -76,25 +77,25 @@ class SinStockEnv:
     def filter_action(self, action):
         pass
 
-    def bay_short(self, current_price):
+    def buy_short(self, current_price):
         self.in_hand = -1
         self.last_purchased = current_price
         return 0, True
 
-    def bay_long(self, current_price):
+    def buy_long(self, current_price):
         self.in_hand = 1
         self.last_purchased = current_price
         return 0, True
 
     def sell_short(self, current_price):
         self.in_hand = 0
-        reward = self.last_purchased - current_price
+        reward = (self.last_purchased / current_price - 1) * 100
         self.last_purchased = None
         return reward, True
 
     def sell_long(self, current_price):
         self.in_hand = 0
-        reward = current_price - self.last_purchased
+        reward = (current_price / self.last_purchased - 1) * 100
         self.last_purchased = None
         return reward, True
 
@@ -109,12 +110,12 @@ class SinStockEnv:
             if self.in_hand == -1:
                 return self.sell_short(current_price)
             if self.in_hand == 0:
-                return self.bay_long(current_price)
+                return self.buy_long(current_price)
         if action == -1:
             if self.in_hand == 1:
                 return self.sell_long(current_price)
             if self.in_hand == 0:
-                return self.bay_short(current_price)
+                return self.buy_short(current_price)
         return 0, False
 
     def step(self, action):
@@ -125,12 +126,13 @@ class SinStockEnv:
         observation, reward, terminated, truncated, info = {}, 0, False, False, {}
 
         # execute action + get reward
-        reward, executed = self.calc_reward(action)
+        reward, executed = self.calc_reward(action)  # reward in percentages
         reward_fee = 0
         self.history_property[self.step_count] = self.in_hand
         if executed:
-            # reward_fee = reward - 1
-            reward_fee = reward - self.commission * self.history_asset[self.step_count]
+            reward_fee = reward - self.commission * 100
+            # reward_fee = reward - self.commission * self.history_asset[self.step_count]
+            # reward_fee = self.commission * self.history_asset[self.step_count]
             self.history_actions[self.step_count] = action
             self.history_rewards[self.step_count] = reward
             self.history_rewards_fee[self.step_count] = reward_fee

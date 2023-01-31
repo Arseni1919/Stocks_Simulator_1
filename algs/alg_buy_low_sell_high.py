@@ -1,6 +1,6 @@
 from globals import *
 from environments.sin_stock_env import SinStockEnv
-from alg_meta_class import MetaAlg
+from algs.alg_meta_class import MetaAlg
 
 
 class BuyLowSellHighAlg(MetaAlg):
@@ -59,7 +59,7 @@ class BuyLowSellHighAlg(MetaAlg):
         self.history_volume[step_count] = observation['asset_volume']
         self.history_actions[step_count] = action
         self.history_rewards[step_count] = reward
-        self.history_rewards_fee[step_count] = next_observation['reward_fee']
+        # self.history_rewards_fee[step_count] = next_observation['reward_fee']
         self.history_property[step_count] = next_observation['in_hand']
         self.history_termination[step_count] = terminated
 
@@ -69,7 +69,7 @@ class BuyLowSellHighAlg(MetaAlg):
             self.env.plot_asset_and_actions(self.ax[0, 0], info=info)
             self.env.plot_volume(self.ax_volume, info=info)
             self.env.plot_rewards(self.ax[0, 1], info=info)
-            self.env.plot_rewards_differences(self.ax[0, 2], info=info)
+            # self.env.plot_rewards_differences(self.ax[0, 2], info=info)
             self.env.plot_property(self.ax[1, 0], info=info)
             self.env.plot_variance(self.ax[1, 1], info=info)
             self.env.plot_average(self.ax[1, 2], info=info)

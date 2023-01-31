@@ -27,7 +27,7 @@ class PlotterBigExperiments:
         algorithms = info['algorithms']
         step_count = info['step']
         for algorithm in algorithms:
-            h_rewards = algorithm.history_rewards[:self.max_steps]
+            h_rewards = algorithm.history_cash[:self.max_steps]
             h_rewards_fee = algorithm.history_rewards_fee[:self.max_steps]
             cumsum_rewards = np.cumsum(h_rewards)
             # ax.plot(cumsum_rewards, alpha=0.7, label=f'{algorithm.name}')

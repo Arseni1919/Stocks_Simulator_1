@@ -85,7 +85,7 @@ class BuyLowSellHighAlg(MetaAlg):
 def main():
     episodes = 1
     w1, w2 = 30, 10
-    env = SinStockEnv()
+    env = SinStockEnv(risk_rate=1)
     alg = BuyLowSellHighAlg(env=env, to_plot=True, params={'w1': w1, 'w2': w2})
     observation, info = env.reset()
     for episode in range(episodes):

@@ -56,7 +56,6 @@ class SinStockEnv(MetaEnv):
         self.history_volume = np.zeros((self.max_steps,))
         self.history_actions = np.zeros((self.max_steps,))
         self.history_cash = np.zeros((self.max_steps,))
-        # self.history_rewards_fee = np.zeros((self.max_steps,))
         self.history_holdings = np.zeros((self.max_steps,))
         self.history_holdings_worth = np.zeros((self.max_steps,))
         self.history_orders = np.zeros((self.max_steps,))
@@ -76,11 +75,8 @@ class SinStockEnv(MetaEnv):
         prev_asset_value = 100 if self.step_count == 0 else self.history_asset[self.step_count - 1]
         var = 3
         sin_part = np.sin(self.step_count / 15)
-        # print(f'\n{sin_part}')
         asset_value = prev_asset_value + sin_part / 100 * prev_asset_value + np.random.randint(-var, var+1) / 100 * prev_asset_value
         self.history_asset[self.step_count] = asset_value
-        # self.history_asset[self.step_count] = prev_asset_value + sin_part + np.random.randint(-var, var+1)
-        # prev_volume_value = 50 if self.step_count == 0 else self.history_volume[self.step_count - 1]
         self.history_volume[self.step_count] = sin_part * 5 + 5 + np.random.randint(1, 10)
         observation['asset'] = self.history_asset[self.step_count]
         observation['asset_volume'] = self.history_volume[self.step_count]
@@ -94,11 +90,19 @@ class SinStockEnv(MetaEnv):
         return np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])
 
     def update_history_after_action(self, current_price):
-        self.history_orders[self.step_count] += 1
         self.history_holdings[self.step_count] = self.portion_of_asset
-        self.history_holdings_worth[self.step_count] = self.portion_of_asset * current_price
         self.history_cash[self.step_count] = self.cash
         self.history_commission_value[self.step_count] = self.commission_value
+        if self.portion_of_asset > 0:  # long
+            h_holdings_worth = self.portion_of_asset * current_price
+        elif self.portion_of_asset < 0:  # short
+            loan_to_receive_before_commission = abs(self.portion_of_asset) * current_price
+            revenue_to_receive_before_commission = self.short_cash - loan_to_receive_before_commission
+            h_holdings_worth = self.short_cash + revenue_to_receive_before_commission
+        else:  # portion_of_asset is 0
+            h_holdings_worth = 0
+        self.history_holdings_worth[self.step_count] = h_holdings_worth
+        self.history_portfolio_worth[self.step_count] = self.cash + h_holdings_worth
 
     def enter_short(self, current_price):
         self.in_hand = -1
@@ -109,20 +113,20 @@ class SinStockEnv(MetaEnv):
         self.short_cash = cash_to_invest_after_commission
         self.commission_value = self.commission * cash_to_invest_after_commission
 
-        self.update_history_after_action(current_price)
+        self.history_orders[self.step_count] += 1
         return 0, True
 
     def exit_short(self, current_price):
         self.in_hand = 0
-        loan_to_receive_before_commission = self.portion_of_asset * current_price * -1
+        loan_to_receive_before_commission = abs(self.portion_of_asset) * current_price
         self.commission_value = self.commission * loan_to_receive_before_commission
         loan_to_receive_after_commission = loan_to_receive_before_commission - self.commission_value
-        cash_to_receive_after_commission = self.short_cash - loan_to_receive_after_commission
-        self.cash += cash_to_receive_after_commission
+        revenue_to_receive_after_commission = self.short_cash - loan_to_receive_after_commission
+        self.cash += self.short_cash + revenue_to_receive_after_commission
         self.portion_of_asset = 0
         self.short_cash = 0
 
-        self.update_history_after_action(current_price)
+        self.history_orders[self.step_count] += 1
         return True
 
     def enter_long(self, current_price):
@@ -133,7 +137,7 @@ class SinStockEnv(MetaEnv):
         self.portion_of_asset = cash_to_invest_after_commission / current_price
         self.commission_value = self.commission * cash_to_invest_after_commission
 
-        self.update_history_after_action(current_price)
+        self.history_orders[self.step_count] += 1
         return True
 
     def exit_long(self, current_price):
@@ -144,7 +148,7 @@ class SinStockEnv(MetaEnv):
         self.cash += cash_to_receive_after_commission
         self.portion_of_asset = 0
 
-        self.update_history_after_action(current_price)
+        self.history_orders[self.step_count] += 1
         return True
 
     def exec_action(self, action):
@@ -182,6 +186,7 @@ class SinStockEnv(MetaEnv):
 
         # execute action + get reward
         executed = self.exec_action(action)  # reward in dollars
+        self.update_history_after_action(self.history_asset[self.step_count])
         # TODO:
         self.history_portfolio_worth[self.step_count] = self.history_cash[self.step_count] + self.history_holdings_worth[self.step_count]
         if executed:
@@ -264,12 +269,14 @@ class SinStockEnv(MetaEnv):
         h_cash = self.history_cash[:self.step_count]
         h_hold_w = self.history_holdings_worth[:self.step_count]
         h_port_w = self.history_portfolio_worth[:self.step_count]
-        # h_rewards_fee = self.history_rewards_fee[:self.step_count]
-        # cumsum_rewards = np.cumsum(h_rewards)
-        color = 'green' if h_cash[-1] > 100 else 'red'
-        ax.plot(h_cash, c=color, alpha=0.7, label='cash')
+        ax.plot(h_cash, alpha=0.7, label='cash')
         ax.plot(h_hold_w, alpha=0.7, label='holdings_worth')
-        ax.plot(h_port_w, alpha=0.7, label='portfolio_worth')
+        color = 'lightgreen' if h_port_w[-1] > 100 else 'orange'
+        ax.plot(h_port_w, c=color, alpha=1, label='portfolio_worth')
+        buy_steps = np.where(self.history_actions[:self.step_count] == 1)
+        ax.scatter(buy_steps, h_port_w[buy_steps], c='green', marker='^', label='long order')
+        sell_steps = np.where(self.history_actions[:self.step_count] == -1)
+        ax.scatter(sell_steps, h_port_w[sell_steps], c='red', marker='v', label='short order')
         # ax.plot(np.cumsum(h_rewards_fee), '--', c='gray', alpha=0.7, label='with fees')
         self.set_xlims(ax)
         ax.legend()

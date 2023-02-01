@@ -1,6 +1,7 @@
 from globals import *
 from environments.sin_stock_env import SinStockEnv
 from algs.alg_meta_class import MetaAlg
+from plot_fucntions_and_classes.plot_functions import *
 
 
 class BuyLowSellHighAlg(MetaAlg):
@@ -65,21 +66,9 @@ class BuyLowSellHighAlg(MetaAlg):
 
     def render(self, info):
         if self.to_plot:
-            self.cla_axes()
-            self.env.plot_asset_and_actions(self.ax[0, 0], info=info)
-            self.env.plot_volume(self.ax_volume, info=info)
-            self.env.plot_rewards(self.ax[0, 1], info=info)
-            # self.env.plot_rewards_differences(self.ax[0, 2], info=info)
-            self.env.plot_property(self.ax[1, 0], info=info)
-            self.env.plot_variance(self.ax[1, 1], info=info)
-            self.env.plot_average(self.ax[1, 2], info=info)
+            self.env.render_graphs(self.ax, self.ax_volume, info)
             self.fig.suptitle(f'Alg: {self.name}', fontsize=16)
             plt.pause(0.001)
-
-    def cla_axes(self):
-        self.ax_volume.cla()
-        for ax_i in self.ax.reshape(-1):
-            ax_i.cla()
 
 
 def main():

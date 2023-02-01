@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from environments.env_meta_class import MetaEnv
+from plot_fucntions_and_classes.plot_functions import *
 from globals import *
 
 
@@ -112,8 +113,6 @@ class SinStockEnv(MetaEnv):
         self.portion_of_asset = - cash_to_invest_after_commission / current_price
         self.short_cash = cash_to_invest_after_commission
         self.commission_value = self.commission * cash_to_invest_after_commission
-
-        self.history_orders[self.step_count] += 1
         return 0, True
 
     def exit_short(self, current_price):
@@ -125,8 +124,6 @@ class SinStockEnv(MetaEnv):
         self.cash += self.short_cash + revenue_to_receive_after_commission
         self.portion_of_asset = 0
         self.short_cash = 0
-
-        self.history_orders[self.step_count] += 1
         return True
 
     def enter_long(self, current_price):
@@ -136,8 +133,6 @@ class SinStockEnv(MetaEnv):
         cash_to_invest_after_commission = cash_to_invest_before_commission / (1 + self.commission)
         self.portion_of_asset = cash_to_invest_after_commission / current_price
         self.commission_value = self.commission * cash_to_invest_after_commission
-
-        self.history_orders[self.step_count] += 1
         return True
 
     def exit_long(self, current_price):
@@ -147,8 +142,6 @@ class SinStockEnv(MetaEnv):
         cash_to_receive_after_commission = cash_to_receive_before_commission - self.commission_value
         self.cash += cash_to_receive_after_commission
         self.portion_of_asset = 0
-
-        self.history_orders[self.step_count] += 1
         return True
 
     def exec_action(self, action):
@@ -187,10 +180,10 @@ class SinStockEnv(MetaEnv):
         # execute action + get reward
         executed = self.exec_action(action)  # reward in dollars
         self.update_history_after_action(self.history_asset[self.step_count])
-        # TODO:
-        self.history_portfolio_worth[self.step_count] = self.history_cash[self.step_count] + self.history_holdings_worth[self.step_count]
         if executed:
+            self.history_orders[self.step_count] += 1
             self.history_actions[self.step_count] = action
+            self.commission_value = 0
 
         # is it terminated / truncated?
         self.step_count += 1
@@ -212,108 +205,32 @@ class SinStockEnv(MetaEnv):
     # For rendering ------------------------------------------------------------------------------- #
     def render(self, info=None):
         if self.to_plot:
-            self.cla_axes()
-            self.plot_asset_and_actions(self.ax[0, 0], info=info)
-            self.plot_volume(self.ax_volume, info=info)
-            self.plot_rewards(self.ax[0, 1], info=info)
-            self.plot_rewards_differences(self.ax[0, 2], info=info)
-            self.plot_property(self.ax[1, 0], info=info)
-            self.plot_variance(self.ax[1, 1], info=info)
-            self.plot_average(self.ax[1, 2], info=info)
+            self.render_graphs(self.ax, self.ax_volume, info)
             if "alg_name" in info:
                 self.fig.suptitle(f'Alg: {info["alg_name"]}', fontsize=16)
             plt.pause(0.001)
 
-    def plot_asset_and_actions(self, ax, info):
-        ax.plot(self.history_asset[:self.step_count], c='lightblue')
-        buy_steps = np.where(self.history_actions[:self.step_count] == 1)
-        ax.scatter(buy_steps, self.history_asset[buy_steps], c='green', marker='^', label='long order')
-        sell_steps = np.where(self.history_actions[:self.step_count] == -1)
-        ax.scatter(sell_steps, self.history_asset[sell_steps], c='red', marker='v', label='short order')
+    def render_graphs(self, ax, ax_volume, info=None):
+        info['step_count'] = self.step_count
+        info['max_steps'] = self.max_steps
+        info['history_asset'] = self.history_asset
+        info['history_actions'] = self.history_actions
+        info['history_volume'] = self.history_volume
+        info['history_cash'] = self.history_cash
+        info['history_holdings'] = self.history_holdings
+        info['history_holdings_worth'] = self.history_holdings_worth
+        info['history_portfolio_worth'] = self.history_portfolio_worth
+        info['history_commission_value'] = self.history_commission_value
 
-        if 'w1' in info:
-            ts = pd.Series(self.history_asset[0:self.step_count])
-            data = ts.rolling(window=info['w1']).mean().to_numpy()
-            ax.plot(data, label=f"w: {info['w1']}")
+        plot_asset_and_actions(ax[0, 0], info=info)
+        plot_volume(ax_volume, info=info)
+        plot_rewards(ax[0, 1], info=info)
+        plot_commissions(ax[0, 2], info=info)
+        plot_property(ax[1, 0], info=info)
+        plot_variance(ax[1, 1], info=info)
+        plot_average(ax[1, 2], info=info)
 
-            ts = pd.Series(self.history_asset[0:self.step_count])
-            data = ts.rolling(window=info['w2']).mean().to_numpy()
-            ax.plot(data, label=f"w: {info['w2']}")
 
-        ax.legend()
-        self.set_xlims(ax)
-
-        if info is not None:
-            episode = info['episode']
-            step = info['step']
-            ax.set_title(f"{episode=} | {step=}")
-
-    def plot_volume(self, ax, info):
-        ax.cla()
-        step_count = self.step_count if self.step_count >= 0 else self.max_steps - 1
-        ax.bar(np.arange(step_count), self.history_volume[:self.step_count], alpha=0.2)
-        ax.set_ylim(0, 50)
-
-    def plot_property(self, ax, info):
-        ax.cla()
-        step_count = self.step_count if self.step_count >= 0 else self.max_steps - 1
-        ax.plot(self.history_holdings[:self.step_count], c='brown', alpha=0.7)
-        ax.fill_between(np.arange(step_count), np.zeros(step_count), self.history_holdings[:self.step_count],
-                        color='coral', alpha=0.5)
-        # ax.set_yticks([-1, 0, 1])
-        # ax.set_yticklabels(['Short', 'Hold', 'Long'])
-        self.set_xlims(ax)
-        ax.set_title('In Hand')
-
-    def plot_rewards(self, ax, info):
-        h_cash = self.history_cash[:self.step_count]
-        h_hold_w = self.history_holdings_worth[:self.step_count]
-        h_port_w = self.history_portfolio_worth[:self.step_count]
-        ax.plot(h_cash, alpha=0.7, label='cash')
-        ax.plot(h_hold_w, alpha=0.7, label='holdings_worth')
-        color = 'lightgreen' if h_port_w[-1] > 100 else 'orange'
-        ax.plot(h_port_w, c=color, alpha=1, label='portfolio_worth')
-        buy_steps = np.where(self.history_actions[:self.step_count] == 1)
-        ax.scatter(buy_steps, h_port_w[buy_steps], c='green', marker='^', label='long order')
-        sell_steps = np.where(self.history_actions[:self.step_count] == -1)
-        ax.scatter(sell_steps, h_port_w[sell_steps], c='red', marker='v', label='short order')
-        # ax.plot(np.cumsum(h_rewards_fee), '--', c='gray', alpha=0.7, label='with fees')
-        self.set_xlims(ax)
-        ax.legend()
-        ax.set_title('Cumulative Rewards')
-
-    def plot_rewards_differences(self, ax, info):
-        h_rewards = np.cumsum(self.history_cash[:self.step_count])
-        # h_rewards_fee = np.cumsum(self.history_rewards_fee[:self.step_count])
-        # ax.plot(h_rewards - h_rewards_fee)
-        self.set_xlims(ax)
-        ax.set_title('Difference With and Without Fees')
-
-    def plot_variance(self, ax, info):
-        ts = pd.Series(self.history_asset[1:self.step_count] - self.history_asset[0:self.step_count-1])
-        for window in [10, 40, 70, 100]:
-            data = ts.rolling(window=window).std().to_numpy()
-            ax.plot(data, label=f'w:{window}')
-        self.set_xlims(ax)
-        ax.legend()
-        ax.set_title('Asset Residuals')
-
-    def plot_average(self, ax, info):
-        ts = pd.Series(self.history_asset[0:self.step_count])
-        for window in [10, 40, 70, 100]:
-            data = ts.rolling(window=window).mean().to_numpy()
-            ax.plot(data, label=f'w:{window}')
-        self.set_xlims(ax)
-        ax.legend()
-        ax.set_title('Asset Average')
-
-    def set_xlims(self, ax):
-        ax.set_xlim([0, self.max_steps])
-
-    def cla_axes(self):
-        self.ax_volume.cla()
-        for ax_i in self.ax.reshape(-1):
-            ax_i.cla()
 
 
 def main():
@@ -345,5 +262,9 @@ if __name__ == '__main__':
 #             for col_ax in row_ax:
 #                 col_ax.cla()
 
+# def cla_axes(self):
+#     self.ax_volume.cla()
+#     for ax_i in self.ax.reshape(-1):
+#         ax_i.cla()
 
 

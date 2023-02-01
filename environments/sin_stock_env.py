@@ -63,6 +63,7 @@ class SinStockEnv(MetaEnv):
         self.history_portfolio_worth = np.zeros((self.max_steps,))
         self.history_commission_value = np.zeros((self.max_steps,))
         self.history_cash[0] = self.cash
+        self.history_portfolio_worth[0] = self.cash
         observation = self.generate_next_observation()
         info = {}
         return observation, info
@@ -74,22 +75,27 @@ class SinStockEnv(MetaEnv):
     def generate_next_observation(self):
         observation = {}
         step_count = self.step_count
+
         prev_asset_value = 100 if step_count == 0 else self.history_asset[step_count - 1]
         var = 3
         sin_part = np.sin(step_count / 15)
         asset_value = prev_asset_value + sin_part / 100 * prev_asset_value + np.random.randint(-var, var+1) / 100 * prev_asset_value
         self.history_asset[step_count] = asset_value
         self.history_volume[step_count] = sin_part * 5 + 5 + np.random.randint(1, 10)
+
         observation['asset'] = self.history_asset[step_count]
         observation['asset_volume'] = self.history_volume[step_count]
         observation['step_count'] = step_count
         observation['in_hand'] = self.in_hand
-        observation['history_cash'] = self.history_cash[step_count]
-        observation['history_holdings'] = self.history_holdings[step_count]
-        observation['history_holdings_worth'] = self.history_holdings_worth[step_count]
-        observation['history_orders'] = self.history_orders[step_count]
-        observation['history_portfolio_worth'] = self.history_portfolio_worth[step_count]
-        observation['history_commission_value'] = self.history_commission_value[step_count]
+        step_count = 1 if step_count == 0 else step_count
+        step_count = 0 if step_count == -1 else step_count
+        observation['history_cash'] = self.history_cash[step_count - 1]
+        observation['history_holdings'] = self.history_holdings[step_count - 1]
+        observation['history_holdings_worth'] = self.history_holdings_worth[step_count - 1]
+        observation['history_orders'] = self.history_orders[step_count - 1]
+        observation['history_portfolio_worth'] = self.history_portfolio_worth[step_count - 1]
+        observation['history_commission_value'] = self.history_commission_value[step_count - 1]
+
         return observation
 
     def sample_action(self):

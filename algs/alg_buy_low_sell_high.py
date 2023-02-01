@@ -18,8 +18,12 @@ class BuyLowSellHighAlg(MetaAlg):
         self.history_asset = np.zeros((self.max_steps,))
         self.history_volume = np.zeros((self.max_steps,))
         self.history_actions = np.zeros((self.max_steps,))
-        self.history_rewards = np.zeros((self.max_steps,))
-        self.history_rewards_fee = np.zeros((self.max_steps,))
+        self.history_cash = np.zeros((self.max_steps,))
+        self.history_holdings = np.zeros((self.max_steps,))
+        self.history_holdings_worth = np.zeros((self.max_steps,))
+        self.history_orders = np.zeros((self.max_steps,))
+        self.history_portfolio_worth = np.zeros((self.max_steps,))
+        self.history_commission_value = np.zeros((self.max_steps,))
         self.history_property = np.zeros((self.max_steps,))
         self.history_termination = np.zeros((self.max_steps,))
 
@@ -30,10 +34,32 @@ class BuyLowSellHighAlg(MetaAlg):
             self.fig, self.ax = plt.subplots(self.subplot_rows, self.subplot_cols, figsize=(14, 7))
             self.ax_volume = self.ax[0, 0].twinx()
 
-    def return_action(self, observation):
+    @staticmethod
+    def action_decision(in_hand, det_big, det_small):
+        next_in_hand = 0
         action = 0
-        step_count = observation['step_count']
-        in_hand = observation['in_hand']
+        if in_hand == 0:
+            if det_big > 0 and det_small > 0:
+                action = 1
+                next_in_hand = 1
+            if det_big < 0 and det_small < 0:
+                action = -1
+                next_in_hand = -1
+        if in_hand == 1:
+            if det_big > 0 and det_small < 0:
+                action = -1
+            if det_big < 0 and det_small < 0:
+                action = -1
+        if in_hand == -1:
+            if det_big < 0 and det_small > 0:
+                action = 1
+            if det_big > 0 and det_small > 0:
+                action = 1
+        return action, next_in_hand
+
+    def return_action(self, observation):
+        action = [0, 0]
+        step_count, in_hand = self.update_history(observation)
         w1, w2 = self.params['w1'], self.params['w2']
         if step_count > max(w1, w1) + 2:
             ts = pd.Series(self.history_asset[0:step_count])
@@ -41,27 +67,27 @@ class BuyLowSellHighAlg(MetaAlg):
             data_sw = ts.rolling(window=w2).mean().to_numpy()
             det_big = data[-1] - data[-2]
             det_small = data_sw[-1] - data_sw[-2]
-            if in_hand == 0:
-                if det_big > 0 and det_small > 0:
-                    action = 1
-                if det_big < 0 and det_small < 0:
-                    action = -1
-            if in_hand == 1:
-                if det_big > 0 and det_small < 0:
-                    action = -1
-            if in_hand == -1:
-                if det_big < 0 and det_small > 0:
-                    action = 1
+            action[0], next_in_hand = self.action_decision(in_hand, det_big, det_small)
+            action[1], _ = self.action_decision(next_in_hand, det_big, det_small)
+
         return action
 
-    def update(self, observation, action, reward, next_observation, terminated, truncated):
+    def update_history(self, observation):
         step_count = observation['step_count']
+        in_hand = observation['in_hand']
         self.history_asset[step_count] = observation['asset']
         self.history_volume[step_count] = observation['asset_volume']
-        self.history_actions[step_count] = action
-        self.history_rewards[step_count] = reward
-        # self.history_rewards_fee[step_count] = next_observation['reward_fee']
-        self.history_property[step_count] = next_observation['in_hand']
+        self.history_cash[step_count] = observation['history_cash']
+        self.history_holdings[step_count] = observation['history_holdings']
+        self.history_holdings_worth[step_count] = observation['history_holdings_worth']
+        self.history_orders[step_count] = observation['history_orders']
+        self.history_portfolio_worth[step_count] = observation['history_portfolio_worth']
+        self.history_commission_value[step_count] = observation['history_commission_value']
+        return step_count, in_hand
+
+    def update(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
+        step_count = observation['step_count']
+        self.history_actions[step_count] = action[-1]
         self.history_termination[step_count] = terminated
 
     def render(self, info):
@@ -81,8 +107,8 @@ def main():
         for step in range(env.max_steps):
             print(f'\r{episode=} | {step=}', end='')
             action = alg.return_action(observation)
-            next_observation, reward, terminated, truncated, info = env.step(action)
-            alg.update(observation, action, reward, next_observation, terminated, truncated)
+            next_observation, portfolio_worth, terminated, truncated, info = env.step(action)
+            alg.update(observation, action, portfolio_worth, next_observation, terminated, truncated)
             observation = next_observation
             if step % 200 == 0 or step == env.max_steps - 1:
                 # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})

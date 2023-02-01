@@ -87,6 +87,19 @@ def plot_commissions(ax, info):
     ax.set_title('Commisions')
 
 
+def plot_orders(ax, info):
+    ax.cla()
+    step_count = info['step_count']
+    max_steps = info['max_steps']
+    history_orders = info['history_orders']
+    # h_commission_value = np.cumsum(history_orders[:step_count])
+    # ax.plot(h_commission_value[:step_count])
+    ax.plot(history_orders[:step_count])
+    # step_count = step_count if step_count >= 0 else max_steps - 1
+    # ax.bar(np.arange(step_count), history_orders[:step_count], alpha=1)
+    set_xlims(ax, 0, max_steps)
+    ax.set_title('Orders')
+
 def plot_property(ax, info):
     ax.cla()
     step_count = info['step_count']

@@ -73,27 +73,33 @@ class SinStockEnv(MetaEnv):
 
     def generate_next_observation(self):
         observation = {}
-        prev_asset_value = 100 if self.step_count == 0 else self.history_asset[self.step_count - 1]
+        step_count = self.step_count
+        prev_asset_value = 100 if step_count == 0 else self.history_asset[step_count - 1]
         var = 3
-        sin_part = np.sin(self.step_count / 15)
+        sin_part = np.sin(step_count / 15)
         asset_value = prev_asset_value + sin_part / 100 * prev_asset_value + np.random.randint(-var, var+1) / 100 * prev_asset_value
-        self.history_asset[self.step_count] = asset_value
-        self.history_volume[self.step_count] = sin_part * 5 + 5 + np.random.randint(1, 10)
-        observation['asset'] = self.history_asset[self.step_count]
-        observation['asset_volume'] = self.history_volume[self.step_count]
-        observation['step_count'] = self.step_count
-        # observation['reward_fee'] = reward_fee
+        self.history_asset[step_count] = asset_value
+        self.history_volume[step_count] = sin_part * 5 + 5 + np.random.randint(1, 10)
+        observation['asset'] = self.history_asset[step_count]
+        observation['asset_volume'] = self.history_volume[step_count]
+        observation['step_count'] = step_count
         observation['in_hand'] = self.in_hand
+        observation['history_cash'] = self.history_cash[step_count]
+        observation['history_holdings'] = self.history_holdings[step_count]
+        observation['history_holdings_worth'] = self.history_holdings_worth[step_count]
+        observation['history_orders'] = self.history_orders[step_count]
+        observation['history_portfolio_worth'] = self.history_portfolio_worth[step_count]
+        observation['history_commission_value'] = self.history_commission_value[step_count]
         return observation
 
     def sample_action(self):
         # return np.random.choice(self.action_space, p=[0.9, 0.05, 0.05])
-        return np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])
+        return [np.random.choice(self.action_space, p=[0.05, 0.9, 0.05]) for _ in range(2)]
 
     def update_history_after_action(self, current_price):
         self.history_holdings[self.step_count] = self.portion_of_asset
         self.history_cash[self.step_count] = self.cash
-        self.history_commission_value[self.step_count] = self.commission_value
+        self.history_commission_value[self.step_count] += self.commission_value
         if self.portion_of_asset > 0:  # long
             h_holdings_worth = self.portion_of_asset * current_price
         elif self.portion_of_asset < 0:  # short
@@ -113,7 +119,7 @@ class SinStockEnv(MetaEnv):
         self.portion_of_asset = - cash_to_invest_after_commission / current_price
         self.short_cash = cash_to_invest_after_commission
         self.commission_value = self.commission * cash_to_invest_after_commission
-        return 0, True
+        return True
 
     def exit_short(self, current_price):
         self.in_hand = 0
@@ -144,14 +150,13 @@ class SinStockEnv(MetaEnv):
         self.portion_of_asset = 0
         return True
 
-    def exec_action(self, action):
+    def exec_action(self, action, current_price):
         """
         :return:
         """
-        current_price = self.history_asset[self.step_count]
         if self.in_hand == 0:
             if self.step_count + 1 == self.max_steps:
-                return 0, 0, False
+                return False
             if action == 1:
                 return self.enter_long(current_price)
             if action == -1:
@@ -168,7 +173,7 @@ class SinStockEnv(MetaEnv):
                 return self.exit_long(current_price)
         else:
             raise RuntimeError('in_hand - wrong')
-        return 0, 0, False
+        return False
 
     def step(self, action):
         """
@@ -177,13 +182,18 @@ class SinStockEnv(MetaEnv):
         self.reset_check()
         observation, reward, terminated, truncated, info = {}, 0, False, False, {}
 
-        # execute action + get reward
-        executed = self.exec_action(action)  # reward in dollars
-        self.update_history_after_action(self.history_asset[self.step_count])
-        if executed:
-            self.history_orders[self.step_count] += 1
-            self.history_actions[self.step_count] = action
-            self.commission_value = 0
+        # execute actions
+        current_price = self.history_asset[self.step_count]
+        for sub_action in action:
+            executed = self.exec_action(sub_action, current_price)  # reward in dollars
+            self.update_history_after_action(current_price)
+            if executed:
+                self.history_orders[self.step_count] += 1
+                self.history_actions[self.step_count] = sub_action
+                self.commission_value = 0
+
+        # get reward
+        portfolio_worth = self.history_portfolio_worth[self.step_count]
 
         # is it terminated / truncated?
         self.step_count += 1
@@ -197,7 +207,7 @@ class SinStockEnv(MetaEnv):
         # gather info
         info = {}
 
-        return observation, reward, terminated, truncated, info
+        return observation, portfolio_worth, terminated, truncated, info
 
     def close(self):
         pass
@@ -217,6 +227,7 @@ class SinStockEnv(MetaEnv):
         info['history_actions'] = self.history_actions
         info['history_volume'] = self.history_volume
         info['history_cash'] = self.history_cash
+        info['history_orders'] = self.history_orders
         info['history_holdings'] = self.history_holdings
         info['history_holdings_worth'] = self.history_holdings_worth
         info['history_portfolio_worth'] = self.history_portfolio_worth
@@ -227,10 +238,9 @@ class SinStockEnv(MetaEnv):
         plot_rewards(ax[0, 1], info=info)
         plot_commissions(ax[0, 2], info=info)
         plot_property(ax[1, 0], info=info)
-        plot_variance(ax[1, 1], info=info)
+        # plot_variance(ax[1, 1], info=info)
+        plot_orders(ax[1, 1], info=info)
         plot_average(ax[1, 2], info=info)
-
-
 
 
 def main():

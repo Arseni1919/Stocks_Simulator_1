@@ -12,7 +12,8 @@ class MetaEnv(ABC):
         self.step_count = -1
         self.max_steps = 390  # minutes
         # global data:
-        self.history_asset = None
+        self.list_of_assets = []
+        self.history_assets = None
         self.history_volume = None
         # agent:
         self.history_actions = None
@@ -45,6 +46,12 @@ class MetaEnv(ABC):
         """
         :return: observation, info
         """
+        # global data
+        # self.history_assets = np.zeros((self.max_steps,))
+        # self.history_volume = np.zeros((self.max_steps,))
+        self.history_assets = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
+        self.history_volume = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
+        # instant data
         self.step_count = 0
         self.in_hand = 0  # -1 -> short, 0 -> nothing, 1 -> long
         self.cash = 100
@@ -52,8 +59,7 @@ class MetaEnv(ABC):
         self.portion_of_asset = 0
         self.commission_value = 0
         self.last_purchased = None
-        self.history_asset = np.zeros((self.max_steps,))
-        self.history_volume = np.zeros((self.max_steps,))
+        # agent data
         self.history_actions = np.zeros((self.max_steps,))
         self.history_cash = np.zeros((self.max_steps,))
         self.history_holdings = np.zeros((self.max_steps,))
@@ -76,8 +82,8 @@ class MetaEnv(ABC):
         step_count = self.step_count
         self.generate_next_assets()
         # global data:
-        observation['asset'] = self.history_asset[step_count]
-        observation['asset_volume'] = self.history_volume[step_count]
+        observation['asset'] = {asset: self.history_assets[asset][step_count] for asset in self.list_of_assets}
+        observation['asset_volume'] = {asset: self.history_volume[asset][step_count] for asset in self.list_of_assets}
         # current state data:
         observation['step_count'] = step_count
         observation['in_hand'] = self.in_hand
@@ -95,7 +101,7 @@ class MetaEnv(ABC):
 
     def sample_action(self):
         # return np.random.choice(self.action_space, p=[0.9, 0.05, 0.05])
-        return [np.random.choice(self.action_space, p=[0.05, 0.9, 0.05]) for _ in range(2)]
+        return [(asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])) for asset in self.list_of_assets]
 
     def enter_short(self, current_price):
         self.in_hand = -1
@@ -136,7 +142,7 @@ class MetaEnv(ABC):
         self.portion_of_asset = 0
         return True
 
-    def exec_action(self, action, current_price):
+    def exec_action(self, asset, action, current_price):
         """
         :return:
         """
@@ -161,7 +167,7 @@ class MetaEnv(ABC):
             raise RuntimeError('in_hand - wrong')
         return False
 
-    def step(self, action):
+    def step(self, actions):
         """
         :return: observation, reward, terminated, truncated, info
         """
@@ -169,13 +175,14 @@ class MetaEnv(ABC):
         observation, reward, terminated, truncated, info = {}, 0, False, False, {}
 
         # execute actions
-        current_price = self.history_asset[self.step_count]
-        for sub_action in action:
-            executed = self.exec_action(sub_action, current_price)  # reward in dollars
-            self.update_history_after_action(current_price)
+        for action_tuple in actions:
+            asset, action = action_tuple
+            current_price = self.history_assets[asset][self.step_count]
+            executed = self.exec_action(asset, action, current_price)  # reward in dollars
+            self.update_history_after_action(asset, current_price)
             if executed:
                 self.history_orders[self.step_count] += 1
-                self.history_actions[self.step_count] = sub_action
+                self.history_actions[self.step_count] = action
                 self.commission_value = 0
 
         # get reward
@@ -195,7 +202,7 @@ class MetaEnv(ABC):
 
         return observation, portfolio_worth, terminated, truncated, info
 
-    def update_history_after_action(self, current_price):
+    def update_history_after_action(self, asset, current_price):
         self.history_holdings[self.step_count] = self.portion_of_asset
         self.history_cash[self.step_count] = self.cash
         self.history_commission_value[self.step_count] += self.commission_value
@@ -216,14 +223,17 @@ class MetaEnv(ABC):
     def render(self, info=None):
         if self.to_plot:
             self.render_graphs(self.ax, self.ax_volume, info)
+            main_asset = info['main_asset']
+            title = f'main_asset: {main_asset}'
             if "alg_name" in info:
-                self.fig.suptitle(f'Alg: {info["alg_name"]}', fontsize=16)
+                title += f' Alg: {info["alg_name"]}'
+            self.fig.suptitle(title, fontsize=16)
             plt.pause(0.001)
 
     def render_graphs(self, ax, ax_volume, info=None):
         info['step_count'] = self.step_count
         info['max_steps'] = self.max_steps
-        info['history_asset'] = self.history_asset
+        info['history_assets'] = self.history_assets
         info['history_actions'] = self.history_actions
         info['history_volume'] = self.history_volume
         info['history_cash'] = self.history_cash

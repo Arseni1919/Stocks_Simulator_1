@@ -8,22 +8,23 @@ def set_xlims(ax, min_steps, max_steps):
 def plot_asset_and_actions(ax, info):
     ax.cla()
     step_count = info['step_count']
-    history_asset = info['history_asset']
+    history_asset = info['history_assets']
     history_actions = info['history_actions']
     max_steps = info['max_steps']
+    main_asset = info['main_asset']
 
-    ax.plot(history_asset[:step_count], c='lightblue')
+    ax.plot(history_asset[main_asset][:step_count], c='lightblue')
     buy_steps = np.where(history_actions[:step_count] == 1)
-    ax.scatter(buy_steps, history_asset[buy_steps], c='green', marker='^', label='long order')
+    ax.scatter(buy_steps, history_asset[main_asset][buy_steps], c='green', marker='^', label='long order')
     sell_steps = np.where(history_actions[:step_count] == -1)
-    ax.scatter(sell_steps, history_asset[sell_steps], c='red', marker='v', label='short order')
+    ax.scatter(sell_steps, history_asset[main_asset][sell_steps], c='red', marker='v', label='short order')
 
     if 'w1' in info:
-        ts = pd.Series(history_asset[0:step_count])
+        ts = pd.Series(history_asset[main_asset][0:step_count])
         data = ts.rolling(window=info['w1']).mean().to_numpy()
         ax.plot(data, label=f"w: {info['w1']}")
 
-        ts = pd.Series(history_asset[0:step_count])
+        ts = pd.Series(history_asset[main_asset][0:step_count])
         data = ts.rolling(window=info['w2']).mean().to_numpy()
         ax.plot(data, label=f"w: {info['w2']}")
 
@@ -41,9 +42,10 @@ def plot_volume(ax, info):
     step_count = info['step_count']
     history_volume = info['history_volume']
     max_steps = info['max_steps']
+    main_asset = info['main_asset']
 
     step_count = step_count if step_count >= 0 else max_steps - 1
-    ax.bar(np.arange(step_count), history_volume[:step_count], alpha=0.2)
+    ax.bar(np.arange(step_count), history_volume[main_asset][:step_count], alpha=0.2)
     ax.set_ylim(0, 50)
 
 
@@ -120,7 +122,7 @@ def plot_variance(ax, info):
     ax.cla()
     step_count = info['step_count']
     max_steps = info['max_steps']
-    history_asset = info['history_asset']
+    history_asset = info['history_assets']
 
     ts = pd.Series(history_asset[1:step_count] - history_asset[0:step_count-1])
     for window in [10, 40, 70, 100]:
@@ -135,9 +137,10 @@ def plot_average(ax, info):
     ax.cla()
     step_count = info['step_count']
     max_steps = info['max_steps']
-    history_asset = info['history_asset']
+    history_asset = info['history_assets']
+    main_asset = info['main_asset']
 
-    ts = pd.Series(history_asset[0:step_count])
+    ts = pd.Series(history_asset[main_asset][0:step_count])
     for window in [10, 40, 70, 100]:
         data = ts.rolling(window=window).mean().to_numpy()
         ax.plot(data, label=f'w:{window}')

@@ -15,7 +15,7 @@ class MetaAlg(ABC):
         pass
 
     @abstractmethod
-    def update(self, observation, action, reward, next_observation, terminated, truncated):
+    def update_after_action(self, observation, action, reward, next_observation, terminated, truncated):
         pass
 
     @abstractmethod

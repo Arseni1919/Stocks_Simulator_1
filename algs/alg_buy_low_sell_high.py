@@ -8,6 +8,7 @@ class BuyLowSellHighAlg(MetaAlg):
 
     def __init__(self, env, to_plot=False, params=None):
         super().__init__()
+        # init
         if params is None:
             params = {'w1': 40, 'w2': 20}
         self.env = env
@@ -15,8 +16,10 @@ class BuyLowSellHighAlg(MetaAlg):
         self.name = f'BLSH-{self.params["w1"]}-{self.params["w2"]}'
         self.to_plot = to_plot
         self.max_steps = self.env.max_steps
+        # global data
         self.history_asset = np.zeros((self.max_steps,))
         self.history_volume = np.zeros((self.max_steps,))
+        # agents data
         self.history_actions = np.zeros((self.max_steps,))
         self.history_cash = np.zeros((self.max_steps,))
         self.history_holdings = np.zeros((self.max_steps,))
@@ -26,7 +29,6 @@ class BuyLowSellHighAlg(MetaAlg):
         self.history_commission_value = np.zeros((self.max_steps,))
         self.history_property = np.zeros((self.max_steps,))
         self.history_termination = np.zeros((self.max_steps,))
-
         # for plots
         if self.to_plot:
             self.subplot_rows = 2
@@ -73,10 +75,13 @@ class BuyLowSellHighAlg(MetaAlg):
         return action
 
     def update_history(self, observation):
+        # current state data:
         step_count = observation['step_count']
         in_hand = observation['in_hand']
+        # global data:
         self.history_asset[step_count] = observation['asset']
         self.history_volume[step_count] = observation['asset_volume']
+        # agent data:
         self.history_cash[step_count] = observation['history_cash']
         self.history_holdings[step_count] = observation['history_holdings']
         self.history_holdings_worth[step_count] = observation['history_holdings_worth']
@@ -85,7 +90,7 @@ class BuyLowSellHighAlg(MetaAlg):
         self.history_commission_value[step_count] = observation['history_commission_value']
         return step_count, in_hand
 
-    def update(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
+    def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
         step_count = observation['step_count']
         self.history_actions[step_count] = action[-1]
         self.history_termination[step_count] = terminated
@@ -108,7 +113,7 @@ def main():
             print(f'\r{episode=} | {step=}', end='')
             action = alg.return_action(observation)
             next_observation, portfolio_worth, terminated, truncated, info = env.step(action)
-            alg.update(observation, action, portfolio_worth, next_observation, terminated, truncated)
+            alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
             observation = next_observation
             if step % 200 == 0 or step == env.max_steps - 1:
                 # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})

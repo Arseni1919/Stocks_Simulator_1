@@ -17,8 +17,10 @@ class BuyLowSellHighAlg(MetaAlg):
         self.to_plot = to_plot
         self.max_steps = self.env.max_steps
         # global data
-        self.history_asset = np.zeros((self.max_steps,))
-        self.history_volume = np.zeros((self.max_steps,))
+        self.list_of_assets = self.env.list_of_assets
+        self.main_asset = self.list_of_assets[0]
+        self.history_assets = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
+        self.history_volume = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         # agents data
         self.history_actions = np.zeros((self.max_steps,))
         self.history_cash = np.zeros((self.max_steps,))
@@ -64,7 +66,7 @@ class BuyLowSellHighAlg(MetaAlg):
         step_count, in_hand = self.update_history(observation)
         w1, w2 = self.params['w1'], self.params['w2']
         if step_count > max(w1, w1) + 2:
-            ts = pd.Series(self.history_asset[0:step_count])
+            ts = pd.Series(self.history_assets[self.main_asset][0:step_count])
             data = ts.rolling(window=w1).mean().to_numpy()
             data_sw = ts.rolling(window=w2).mean().to_numpy()
             det_big = data[-1] - data[-2]
@@ -72,15 +74,16 @@ class BuyLowSellHighAlg(MetaAlg):
             action[0], next_in_hand = self.action_decision(in_hand, det_big, det_small)
             action[1], _ = self.action_decision(next_in_hand, det_big, det_small)
 
-        return action
+        return [(self.main_asset, action[0]), (self.main_asset, action[1])]
 
     def update_history(self, observation):
         # current state data:
         step_count = observation['step_count']
         in_hand = observation['in_hand']
         # global data:
-        self.history_asset[step_count] = observation['asset']
-        self.history_volume[step_count] = observation['asset_volume']
+        for asset in self.list_of_assets:
+            self.history_assets[asset][step_count] = observation['asset'][asset]
+            self.history_volume[asset][step_count] = observation['asset_volume'][asset]
         # agent data:
         self.history_cash[step_count] = observation['history_cash']
         self.history_holdings[step_count] = observation['history_holdings']
@@ -92,11 +95,13 @@ class BuyLowSellHighAlg(MetaAlg):
 
     def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
         step_count = observation['step_count']
-        self.history_actions[step_count] = action[-1]
+        last_action_asset, last_action_value = action[-1]
+        self.history_actions[step_count] = last_action_value
         self.history_termination[step_count] = terminated
 
     def render(self, info):
         if self.to_plot:
+            info['main_asset'] = self.main_asset
             self.env.render_graphs(self.ax, self.ax_volume, info)
             self.fig.suptitle(f'Alg: {self.name}', fontsize=16)
             plt.pause(0.001)

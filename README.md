@@ -13,6 +13,7 @@
 - [GitHub (self) | Gym Env For Stock Trading](https://github.com/Arseni1919/gym-stocktrading)
 - [GitHub (self) | gather game](https://github.com/Arseni1919/Gather_Game/blob/main/impl_env_gather.py)
 - [GitHub (self) | NN with stocks](https://github.com/Arseni1919/Implementing_NN_Stocks)
+- [GitHub (Kirill) | backtester](https://github.com/kirilgravis/NTC/blob/main/Analysys/Three_days.ipynb)
 - [mpl | markers](https://matplotlib.org/stable/api/markers_api.html)
 
 - [alpaca | Trading Account](https://alpaca.markets/docs/api-references/trading-api/account/)

@@ -144,8 +144,8 @@ class MetaEnv(ABC):
 
     def check_margin_call(self, current_price):
         loan_to_receive_before_commission = abs(self.portion_of_asset) * current_price
-        self.commission_value = self.commission * loan_to_receive_before_commission
-        loan_to_receive_after_commission = loan_to_receive_before_commission - self.commission_value
+        commission_value = self.commission * loan_to_receive_before_commission
+        loan_to_receive_after_commission = loan_to_receive_before_commission - commission_value
         if 1.8 * self.short_cash < loan_to_receive_after_commission:
             print('\n-----\nMARGIN CALL\n-----\n')
             return True
@@ -190,10 +190,10 @@ class MetaEnv(ABC):
             current_price = self.history_assets[asset][self.step_count]
             executed = self.exec_action(asset, action, current_price)  # reward in dollars
             self.update_history_after_action(asset, current_price)
+            self.commission_value = 0
             if executed:
                 self.history_orders[self.step_count] += 1
                 self.history_actions[self.step_count] = action
-                self.commission_value = 0
 
         # get reward
         portfolio_worth = self.history_portfolio_worth[self.step_count]

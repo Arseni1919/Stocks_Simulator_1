@@ -15,7 +15,7 @@ class SinStockEnv(MetaEnv):
         step_count = self.step_count
         for asset in self.list_of_assets:
             prev_asset_value = 100 if step_count == 0 else self.history_assets[asset][step_count - 1]
-            var = 3
+            var = 4
             sin_part = np.sin(step_count / 15)
             asset_value = prev_asset_value + sin_part / 100 * prev_asset_value + np.random.randint(-var,
                                                                                                    var + 1) / 100 * prev_asset_value

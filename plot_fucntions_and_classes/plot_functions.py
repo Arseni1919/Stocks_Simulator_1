@@ -102,6 +102,7 @@ def plot_orders(ax, info):
     set_xlims(ax, 0, max_steps)
     ax.set_title('Orders')
 
+
 def plot_property(ax, info):
     ax.cla()
     step_count = info['step_count']

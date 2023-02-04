@@ -103,7 +103,7 @@ class BuyLowSellHighAlg(MetaAlg):
         if self.to_plot:
             info['main_asset'] = self.main_asset
             self.env.render_graphs(self.ax, self.ax_volume, info)
-            self.fig.suptitle(f'Alg: {self.name}', fontsize=16)
+            self.fig.suptitle(f'Sim: {self.env.name}, Alg: {self.name}', fontsize=16)
             plt.pause(0.001)
 
 

@@ -1,5 +1,11 @@
 # Stocks Simulator (version 1)
 
+## Screenshots of the Simulator
+
+### BLSH Strategy:
+
+![](pics/screen1.png)
+
 ## Algorithms
 
 ## 

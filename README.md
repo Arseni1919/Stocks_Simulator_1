@@ -1,6 +1,6 @@
 # Stocks Simulator (version 1)
 
-## Screenshots of the Simulator
+## Screenshots from the Simulator
 
 ### BLSH Strategy:
 

@@ -79,7 +79,7 @@ class BuyLowSellHighAlg(MetaAlg):
     def update_history(self, observation):
         # current state data:
         step_count = observation['step_count']
-        in_hand = observation['in_hand']
+        in_hand = observation['in_hand'][self.main_asset]
         # global data:
         for asset in self.list_of_assets:
             self.history_assets[asset][step_count] = observation['asset'][asset]

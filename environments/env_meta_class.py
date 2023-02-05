@@ -15,7 +15,7 @@ class MetaEnv(ABC):
         self.list_of_assets = []
         self.history_assets = None
         self.history_volume = None
-        # agent:
+        # agent data:
         self.history_actions = None
         self.history_orders = None  # how many orders we did in any kind
         self.history_holdings = None  # a portion of long or short
@@ -23,10 +23,9 @@ class MetaEnv(ABC):
         self.history_cash = None  # in dollars
         self.history_commission_value = None
         self.history_portfolio_worth = None
-        # agent's current values
+        # agent's instant data
         self.in_hand = None
-        self.last_purchased = None
-        self.portion_of_asset = 0
+        self.portion_of_asset = None
         self.cash = 100
         self.short_cash = 0
         self.commission_value = 0
@@ -53,12 +52,11 @@ class MetaEnv(ABC):
         self.history_volume = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         # instant data
         self.step_count = 0
-        self.in_hand = 0  # -1 -> short, 0 -> nothing, 1 -> long
+        self.in_hand = {asset: 0 for asset in self.list_of_assets}  # -1 -> short, 0 -> nothing, 1 -> long
         self.cash = 100
-        self.short_cash = 0
-        self.portion_of_asset = 0
+        self.short_cash = {asset: 0 for asset in self.list_of_assets}
+        self.portion_of_asset = {asset: 0 for asset in self.list_of_assets}
         self.commission_value = 0
-        self.last_purchased = None
         # agent data
         self.history_actions = np.zeros((self.max_steps,))
         self.history_cash = np.zeros((self.max_steps,))
@@ -103,47 +101,47 @@ class MetaEnv(ABC):
         # return np.random.choice(self.action_space, p=[0.9, 0.05, 0.05])
         return [(asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])) for asset in self.list_of_assets]
 
-    def enter_short(self, current_price):
-        self.in_hand = -1
+    def enter_short(self, asset, current_price):
+        self.in_hand[asset] = -1
         cash_to_invest_before_commission = self.cash * self.risk_rate
         self.cash -= cash_to_invest_before_commission
         cash_to_invest_after_commission = cash_to_invest_before_commission / (1 + self.commission)
-        self.portion_of_asset = - cash_to_invest_after_commission / current_price
+        self.portion_of_asset[asset] = - cash_to_invest_after_commission / current_price
         self.short_cash = cash_to_invest_after_commission
         self.commission_value = self.commission * cash_to_invest_after_commission
         return True
 
-    def exit_short(self, current_price):
-        self.in_hand = 0
-        loan_to_receive_before_commission = abs(self.portion_of_asset) * current_price
+    def exit_short(self, asset, current_price):
+        self.in_hand[asset] = 0
+        loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
         self.commission_value = self.commission * loan_to_receive_before_commission
         loan_to_receive_after_commission = loan_to_receive_before_commission - self.commission_value
         revenue_to_receive_after_commission = self.short_cash - loan_to_receive_after_commission
         self.cash += self.short_cash + revenue_to_receive_after_commission
-        self.portion_of_asset = 0
+        self.portion_of_asset[asset] = 0
         self.short_cash = 0
         return True
 
-    def enter_long(self, current_price):
-        self.in_hand = 1
+    def enter_long(self, asset, current_price):
+        self.in_hand[asset] = 1
         cash_to_invest_before_commission = self.cash * self.risk_rate
         self.cash = self.cash - cash_to_invest_before_commission
         cash_to_invest_after_commission = cash_to_invest_before_commission / (1 + self.commission)
-        self.portion_of_asset = cash_to_invest_after_commission / current_price
+        self.portion_of_asset[asset] = cash_to_invest_after_commission / current_price
         self.commission_value = self.commission * cash_to_invest_after_commission
         return True
 
-    def exit_long(self, current_price):
-        self.in_hand = 0
-        cash_to_receive_before_commission = self.portion_of_asset * current_price
+    def exit_long(self, asset, current_price):
+        self.in_hand[asset] = 0
+        cash_to_receive_before_commission = self.portion_of_asset[asset] * current_price
         self.commission_value = self.commission * cash_to_receive_before_commission
         cash_to_receive_after_commission = cash_to_receive_before_commission - self.commission_value
         self.cash += cash_to_receive_after_commission
-        self.portion_of_asset = 0
+        self.portion_of_asset[asset] = 0
         return True
 
-    def check_margin_call(self, current_price):
-        loan_to_receive_before_commission = abs(self.portion_of_asset) * current_price
+    def check_margin_call(self, asset, current_price):
+        loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
         commission_value = self.commission * loan_to_receive_before_commission
         loan_to_receive_after_commission = loan_to_receive_before_commission - commission_value
         if 1.8 * self.short_cash < loan_to_receive_after_commission:
@@ -155,24 +153,25 @@ class MetaEnv(ABC):
         """
         :return:
         """
-        if self.in_hand == 0:
+        # asset_in_hand = self.in_hand[asset]
+        if self.in_hand[asset] == 0:
             if self.step_count + 1 == self.max_steps:
                 return False
             if action == 1:
-                return self.enter_long(current_price)
+                return self.enter_long(asset, current_price)
             if action == -1:
-                return self.enter_short(current_price)
-        elif self.in_hand == -1:
-            margin_call = self.check_margin_call(current_price)
+                return self.enter_short(asset, current_price)
+        elif self.in_hand[asset] == -1:
+            margin_call = self.check_margin_call(asset, current_price)
             if self.step_count + 1 == self.max_steps or margin_call:
-                return self.exit_short(current_price)
+                return self.exit_short(asset, current_price)
             if action == 1:
-                return self.exit_short(current_price)
-        elif self.in_hand == 1:
+                return self.exit_short(asset, current_price)
+        elif self.in_hand[asset] == 1:
             if self.step_count + 1 == self.max_steps:
-                return self.exit_long(current_price)
+                return self.exit_long(asset, current_price)
             if action == -1:
-                return self.exit_long(current_price)
+                return self.exit_long(asset, current_price)
         else:
             raise RuntimeError('in_hand - wrong')
         return False
@@ -213,13 +212,13 @@ class MetaEnv(ABC):
         return observation, portfolio_worth, terminated, truncated, info
 
     def update_history_after_action(self, asset, current_price):
-        self.history_holdings[self.step_count] = self.portion_of_asset
+        self.history_holdings[self.step_count] = self.portion_of_asset[asset]
         self.history_cash[self.step_count] = self.cash
         self.history_commission_value[self.step_count] += self.commission_value
-        if self.portion_of_asset > 0:  # long
-            h_holdings_worth = self.portion_of_asset * current_price
-        elif self.portion_of_asset < 0:  # short
-            loan_to_receive_before_commission = abs(self.portion_of_asset) * current_price
+        if self.portion_of_asset[asset] > 0:  # long
+            h_holdings_worth = self.portion_of_asset[asset] * current_price
+        elif self.portion_of_asset[asset] < 0:  # short
+            loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
             revenue_to_receive_before_commission = self.short_cash - loan_to_receive_before_commission
             h_holdings_worth = self.short_cash + revenue_to_receive_before_commission
         else:  # portion_of_asset is 0

@@ -27,7 +27,7 @@ class MetaEnv(ABC):
         self.in_hand = None
         self.portion_of_asset = None
         self.cash = 100
-        self.short_cash = 0
+        self.short_cash = None
         self.commission_value = 0
 
         # for plots
@@ -107,7 +107,7 @@ class MetaEnv(ABC):
         self.cash -= cash_to_invest_before_commission
         cash_to_invest_after_commission = cash_to_invest_before_commission / (1 + self.commission)
         self.portion_of_asset[asset] = - cash_to_invest_after_commission / current_price
-        self.short_cash = cash_to_invest_after_commission
+        self.short_cash[asset] = cash_to_invest_after_commission
         self.commission_value = self.commission * cash_to_invest_after_commission
         return True
 
@@ -116,10 +116,10 @@ class MetaEnv(ABC):
         loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
         self.commission_value = self.commission * loan_to_receive_before_commission
         loan_to_receive_after_commission = loan_to_receive_before_commission - self.commission_value
-        revenue_to_receive_after_commission = self.short_cash - loan_to_receive_after_commission
-        self.cash += self.short_cash + revenue_to_receive_after_commission
+        revenue_to_receive_after_commission = self.short_cash[asset] - loan_to_receive_after_commission
+        self.cash += self.short_cash[asset] + revenue_to_receive_after_commission
         self.portion_of_asset[asset] = 0
-        self.short_cash = 0
+        self.short_cash[asset] = 0
         return True
 
     def enter_long(self, asset, current_price):
@@ -144,7 +144,7 @@ class MetaEnv(ABC):
         loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
         commission_value = self.commission * loan_to_receive_before_commission
         loan_to_receive_after_commission = loan_to_receive_before_commission - commission_value
-        if 1.8 * self.short_cash < loan_to_receive_after_commission:
+        if 1.8 * self.short_cash[asset] < loan_to_receive_after_commission:
             print('\n-----\nMARGIN CALL\n-----\n')
             return True
         return False
@@ -219,8 +219,8 @@ class MetaEnv(ABC):
             h_holdings_worth = self.portion_of_asset[asset] * current_price
         elif self.portion_of_asset[asset] < 0:  # short
             loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
-            revenue_to_receive_before_commission = self.short_cash - loan_to_receive_before_commission
-            h_holdings_worth = self.short_cash + revenue_to_receive_before_commission
+            revenue_to_receive_before_commission = self.short_cash[asset] - loan_to_receive_before_commission
+            h_holdings_worth = self.short_cash[asset] + revenue_to_receive_before_commission
         else:  # portion_of_asset is 0
             h_holdings_worth = 0
         self.history_holdings_worth[self.step_count] = h_holdings_worth

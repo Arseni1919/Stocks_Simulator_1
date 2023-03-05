@@ -1,14 +1,14 @@
 # Stocks Simulator (version 1)
 
+## Simulators API
+
+## Algorithms API
+
 ## Screenshots from the Simulator
 
 ### BLSH Strategy:
 
 ![](pics/screen1.png)
-
-## Algorithms
-
-## 
 
 ### Episodic Semi-gradient Sarsa for Estimating $q = q*$
 

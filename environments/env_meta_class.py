@@ -67,9 +67,13 @@ class MetaEnv(ABC):
         self.history_commission_value = np.zeros((self.max_steps,))
         self.history_cash[0] = self.cash
         self.history_portfolio_worth[0] = self.cash
+        self.inner_reset()
         observation = self.generate_next_observation()
         info = {}
         return observation, info
+
+    def inner_reset(self):
+        pass
 
     @abstractmethod
     def generate_next_assets(self):

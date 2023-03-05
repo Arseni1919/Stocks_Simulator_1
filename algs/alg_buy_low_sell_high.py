@@ -54,7 +54,7 @@ class BuyLowSellHighAlg(MetaAlg):
     def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
         step_count = observation['step_count']
         last_action_asset, last_action_value = action[-1]
-        self.history_actions[step_count] = last_action_value
+        self.history_actions[last_action_asset][step_count] = last_action_value
         self.history_termination[step_count] = terminated
 
 

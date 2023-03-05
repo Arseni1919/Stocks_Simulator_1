@@ -58,7 +58,7 @@ class MetaEnv(ABC):
         self.portion_of_asset = {asset: 0 for asset in self.list_of_assets}
         self.commission_value = 0
         # agent data
-        self.history_actions = np.zeros((self.max_steps,))
+        self.history_actions = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         self.history_cash = np.zeros((self.max_steps,))
         self.history_holdings = np.zeros((self.max_steps,))
         self.history_holdings_worth = np.zeros((self.max_steps,))
@@ -192,7 +192,7 @@ class MetaEnv(ABC):
             self.commission_value = 0
             if executed:
                 self.history_orders[self.step_count] += 1
-                self.history_actions[self.step_count] = action
+                self.history_actions[asset][self.step_count] = action
 
         # get reward
         portfolio_worth = self.history_portfolio_worth[self.step_count]

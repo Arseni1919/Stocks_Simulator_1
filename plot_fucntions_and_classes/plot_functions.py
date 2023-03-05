@@ -14,9 +14,9 @@ def plot_asset_and_actions(ax, info):
     main_asset = info['main_asset']
 
     ax.plot(history_asset[main_asset][:step_count], c='lightblue')
-    buy_steps = np.where(history_actions[:step_count] == 1)
+    buy_steps = np.where(history_actions[main_asset][:step_count] == 1)
     ax.scatter(buy_steps, history_asset[main_asset][buy_steps], c='green', marker='^', label='long order')
-    sell_steps = np.where(history_actions[:step_count] == -1)
+    sell_steps = np.where(history_actions[main_asset][:step_count] == -1)
     ax.scatter(sell_steps, history_asset[main_asset][sell_steps], c='red', marker='v', label='short order')
 
     if 'w1' in info:
@@ -57,6 +57,7 @@ def plot_rewards(ax, info):
     history_holdings_worth = info['history_holdings_worth']
     history_portfolio_worth = info['history_portfolio_worth']
     history_actions = info['history_actions']
+    main_asset = info['main_asset']
 
     h_cash = history_cash[:step_count]
     h_hold_w = history_holdings_worth[:step_count]
@@ -65,9 +66,9 @@ def plot_rewards(ax, info):
     ax.plot(h_hold_w, alpha=0.7, label='holdings_worth')
     color = 'lightgreen' if h_port_w[-1] > 100 else 'orange'
     ax.plot(h_port_w, c=color, alpha=1, label='portfolio_worth')
-    buy_steps = np.where(history_actions[:step_count] == 1)
+    buy_steps = np.where(history_actions[main_asset][:step_count] == 1)
     ax.scatter(buy_steps, h_port_w[buy_steps], c='green', marker='^', label='long order')
-    sell_steps = np.where(history_actions[:step_count] == -1)
+    sell_steps = np.where(history_actions[main_asset][:step_count] == -1)
     ax.scatter(sell_steps, h_port_w[sell_steps], c='red', marker='v', label='short order')
     # ax.plot(np.cumsum(h_rewards_fee), '--', c='gray', alpha=0.7, label='with fees')
     set_xlims(ax, 0, max_steps)

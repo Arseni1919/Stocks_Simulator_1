@@ -2,7 +2,6 @@ from globals import *
 
 
 class MetaAlg(ABC):
-    # TODO: to make available multiple action calls
     def __init__(self, env, to_plot=False, params=None):
         self.name = 'Alg'
         self.env = env
@@ -15,7 +14,7 @@ class MetaAlg(ABC):
         self.history_assets = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         self.history_volume = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         # agents data
-        self.history_actions = np.zeros((self.max_steps,))
+        self.history_actions = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         self.history_cash = np.zeros((self.max_steps,))
         self.history_holdings = np.zeros((self.max_steps,))
         self.history_holdings_worth = np.zeros((self.max_steps,))

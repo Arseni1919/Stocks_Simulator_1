@@ -1,44 +1,45 @@
-
 from environments.env_meta_class import MetaEnv
 from globals import *
 
 
-class AlpacaEnv(MetaEnv):
+class KirillEnv(MetaEnv):
     def __init__(self, commission=0.001, risk_rate=1, to_plot=False, list_of_assets=None):
         super().__init__(commission, risk_rate, to_plot)
-        self.name = 'AlpacaEnv'
+        self.name = 'KirillEnv'
         self.list_of_assets = list_of_assets
 
         # for init
         self.first_init = True
-        self.client = StockHistoricalDataClient(os.environ['API_KEY'], os.environ['SECRET_KEY'])
         self.days_dict = None
         self.all_daytimes = None
         self.all_daytimes_shuffled = None
         self.days_counter = None
         self.curr_day_data = None
 
-    def build_days_dict(self, bars_df):
-        first_asset = self.list_of_assets[0]
-        day_format = '%Y-%m-%d'
-        all_daytimes = [bar_index[1].strftime(day_format) for bar_index in bars_df.index if bar_index[0] == first_asset]
+    def build_days_dict(self, bars_df, to_load=True):
+        all_daytimes = [i_index[:10] for i_index in bars_df['index']]
         all_daytimes = list(set(all_daytimes))
         self.all_daytimes = all_daytimes
         self.all_daytimes_shuffled = self.all_daytimes.copy()
         random.shuffle(self.all_daytimes_shuffled)
         self.days_counter = 0
-        self.days_dict = {day: {asset: {'price': [], 'volume': []} for asset in self.list_of_assets} for day in all_daytimes}
-        for index, row in bars_df.iterrows():
-            curr_day = index[1].strftime(day_format)
-            curr_asset = index[0]
-            self.days_dict[curr_day][curr_asset]['price'].append(row.close)
-            self.days_dict[curr_day][curr_asset]['volume'].append(row.volume)
-        for day in all_daytimes:
-            for asset in self.list_of_assets:
-                prices = self.days_dict[day][asset]['price']
-                volumes = self.days_dict[day][asset]['volume']
-                print(f'{day} | {asset} | lengths: {len(prices)} - {len(volumes)}')
-            print('---------------------')
+
+        if to_load:
+            # Opening JSON file
+            with open('../data/data.json') as json_file:
+                self.days_dict = json.load(json_file)
+        else:
+            self.days_dict = {day: {asset: {'price': [], 'volume': []} for asset in self.list_of_assets} for day in all_daytimes}
+            for index, row in bars_df.iterrows():
+                curr_day = row[0][:10]
+                for i_asset, i_value in row.iteritems():
+                    if 'Close' in i_asset:
+                        self.days_dict[curr_day][i_asset[6:]]['price'].append(i_value)
+                    if 'Volume' in i_asset:
+                        self.days_dict[curr_day][i_asset[7:]]['volume'].append(i_value)
+
+            with open("../data/data.json", "w") as outfile:
+                json.dump(self.days_dict, outfile)
 
     def inner_reset(self):
         """
@@ -46,19 +47,15 @@ class AlpacaEnv(MetaEnv):
         """
         if self.first_init:
             self.first_init = False
-            # download a year
-            request_params = StockBarsRequest(
-                symbol_or_symbols=self.list_of_assets,
-                timeframe=TimeFrame.Minute,
-                # start="2018-01-01 00:00:00"
-                start=datetime.datetime.today() - datetime.timedelta(days=5)
-            )
-            bars = self.client.get_stock_bars(request_params)
-            self.build_days_dict(bars.df)
+            # download a csv
+
+            bars_df = pd.read_csv('../data/all_data_up_to_15_1_22.csv')
+            self.build_days_dict(bars_df)
 
         # sample a random day (without repeats)
         if self.days_counter >= len(self.all_daytimes_shuffled):
-            raise RuntimeError()
+            self.days_counter = 0
+            print('[INFO] finished round on data')
         next_day = self.all_daytimes_shuffled[self.days_counter]
         self.days_counter += 1
         self.curr_day_data = self.days_dict[next_day]
@@ -75,7 +72,7 @@ class AlpacaEnv(MetaEnv):
 
 def main():
     episodes = 1
-    env = AlpacaEnv(to_plot=True, list_of_assets=stocks_names_list[:3])
+    env = KirillEnv(to_plot=True, list_of_assets=stocks_names_list)
     observation, info = env.reset()
     main_asset = 'SPY'
     for episode in range(episodes):
@@ -85,13 +82,20 @@ def main():
             env.step(action)
             if step % 200 == 0 or step == env.max_steps - 1:
                 env.render(info={'episode': episode,
-                                 'step': step, 'main_asset': 'SPY'})
+                                 'step': step, 'main_asset': main_asset})
 
     plt.show()
 
 
 if __name__ == '__main__':
     main()
+
+# for day in all_daytimes:
+#     for asset in self.list_of_assets:
+#         prices = self.days_dict[day][asset]['price']
+#         volumes = self.days_dict[day][asset]['volume']
+#         print(f'{day} | {asset} | lengths: {len(prices)} - {len(volumes)}')
+#     print('---------------------')
 
 
 

@@ -7,10 +7,31 @@ class MetaAlg(ABC):
         self.env = env
         self.params = params
         self.to_plot = to_plot
-        self.max_steps = self.env.max_steps
+        self.max_steps = None
         # global data
         self.list_of_assets = self.env.list_of_assets
         self.main_asset = self.list_of_assets[0]
+        self.history_assets = None
+        self.history_volume = None
+        # agents data
+        self.history_actions = None
+        self.history_cash = None
+        self.history_holdings = None
+        self.history_holdings_worth = None
+        self.history_orders = None
+        self.history_portfolio_worth = None
+        self.history_commission_value = None
+        self.history_termination = None
+        # for plots
+        if self.to_plot:
+            self.subplot_rows = 2
+            self.subplot_cols = 3
+            self.fig, self.ax = plt.subplots(self.subplot_rows, self.subplot_cols, figsize=(14, 7))
+            self.ax_volume = self.ax[0, 0].twinx()
+
+    def reset(self):
+        self.max_steps = self.env.max_steps
+        # global data
         self.history_assets = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         self.history_volume = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         # agents data
@@ -22,12 +43,6 @@ class MetaAlg(ABC):
         self.history_portfolio_worth = np.zeros((self.max_steps,))
         self.history_commission_value = np.zeros((self.max_steps,))
         self.history_termination = np.zeros((self.max_steps,))
-        # for plots
-        if self.to_plot:
-            self.subplot_rows = 2
-            self.subplot_cols = 3
-            self.fig, self.ax = plt.subplots(self.subplot_rows, self.subplot_cols, figsize=(14, 7))
-            self.ax_volume = self.ax[0, 0].twinx()
 
     @abstractmethod
     def return_action(self, observation):

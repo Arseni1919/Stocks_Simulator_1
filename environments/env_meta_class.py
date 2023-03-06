@@ -10,7 +10,7 @@ class MetaEnv(ABC):
         self.to_plot = to_plot
         self.action_space = np.array([-1, 0, 1])
         self.step_count = -1
-        self.max_steps = 390  # minutes
+        self.max_steps = None  # minutes
         # global data:
         self.list_of_assets = []
         self.history_assets = None
@@ -45,6 +45,7 @@ class MetaEnv(ABC):
         """
         :return: observation, info
         """
+        self.max_steps = 390  # minutes
         self.inner_reset()
         # global data
         # self.history_assets = np.zeros((self.max_steps,))
@@ -102,9 +103,11 @@ class MetaEnv(ABC):
 
         return observation
 
-    def sample_action(self):
+    def sample_action(self, asset=None):
         # return np.random.choice(self.action_space, p=[0.9, 0.05, 0.05])
-        return [(asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])) for asset in self.list_of_assets]
+        if asset:
+            return [(asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05]))]
+        return [(i_asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])) for i_asset in self.list_of_assets]
 
     def enter_short(self, asset, current_price):
         self.in_hand[asset] = -1
@@ -229,6 +232,8 @@ class MetaEnv(ABC):
         else:  # portion_of_asset is 0
             h_holdings_worth = 0
         self.history_holdings_worth[self.step_count] = h_holdings_worth
+        if self.cash + h_holdings_worth == 0:
+            print('here')
         self.history_portfolio_worth[self.step_count] = self.cash + h_holdings_worth
 
     def close(self):

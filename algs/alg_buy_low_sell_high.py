@@ -1,5 +1,7 @@
 from globals import *
 from environments.sin_stock_env import SinStockEnv
+from environments.alpaca_env import AlpacaEnv
+from environments.kirill_env import KirillEnv
 from algs.alg_meta_class import MetaAlg
 from plot_fucntions_and_classes.plot_functions import *
 
@@ -61,9 +63,12 @@ class BuyLowSellHighAlg(MetaAlg):
 def main():
     episodes = 1
     w1, w2 = 10, 20
-    env = SinStockEnv(risk_rate=1)
+    # env = SinStockEnv(risk_rate=1)
+    # env = AlpacaEnv(list_of_assets=stocks_names_list[:3])
+    env = KirillEnv(list_of_assets=stocks_names_list)
     alg = BuyLowSellHighAlg(env=env, to_plot=True, params={'w1': w1, 'w2': w2})
     observation, info = env.reset()
+    alg.reset()
     for episode in range(episodes):
         for step in range(env.max_steps):
             print(f'\r{episode=} | {step=}', end='')

@@ -45,6 +45,7 @@ class MetaEnv(ABC):
         """
         :return: observation, info
         """
+        self.inner_reset()
         # global data
         # self.history_assets = np.zeros((self.max_steps,))
         # self.history_volume = np.zeros((self.max_steps,))
@@ -67,7 +68,7 @@ class MetaEnv(ABC):
         self.history_commission_value = np.zeros((self.max_steps,))
         self.history_cash[0] = self.cash
         self.history_portfolio_worth[0] = self.cash
-        self.inner_reset()
+
         observation = self.generate_next_observation()
         info = {}
         return observation, info

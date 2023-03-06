@@ -11,11 +11,12 @@ import os
 dotenv.load_dotenv()
 API_KEY = os.environ['API_KEY']
 SECRET_KEY = os.environ['SECRET_KEY']
+client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
+print(client)
 
 
 def get_time_period_start(time_period):
     # cols_names = ['1D', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'MAX']
-    start_datetime = None
     if time_period == '1D':
         start_datetime = datetime.datetime.today() - datetime.timedelta(days=1)
     elif time_period == '5D':

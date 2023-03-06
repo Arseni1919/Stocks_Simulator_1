@@ -1,5 +1,3 @@
-import platform
+l = [22, 33, 44]
 
-print(platform.mac_ver())
-print(platform.machine())
-print(platform.platform())
+print(l[:1])

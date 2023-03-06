@@ -46,7 +46,7 @@ def plot_volume(ax, info):
 
     step_count = step_count if step_count >= 0 else max_steps - 1
     ax.bar(np.arange(step_count), history_volume[main_asset][:step_count], alpha=0.2)
-    ax.set_ylim(0, 50)
+    # ax.set_ylim(0, 50)
 
 
 def plot_rewards(ax, info):
@@ -64,7 +64,7 @@ def plot_rewards(ax, info):
     h_port_w = history_portfolio_worth[:step_count]
     ax.plot(h_cash, alpha=0.7, label='cash')
     ax.plot(h_hold_w, alpha=0.7, label='holdings_worth')
-    color = 'lightgreen' if h_port_w[-1] > 100 else 'orange'
+    color = 'lightgreen' if h_port_w[-1] > 100 else 'brown'
     ax.plot(h_port_w, c=color, alpha=1, label='portfolio_worth')
     buy_steps = np.where(history_actions[main_asset][:step_count] == 1)
     ax.scatter(buy_steps, h_port_w[buy_steps], c='green', marker='^', label='long order')

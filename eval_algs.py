@@ -19,6 +19,8 @@ def main():
 
         for alg_index, alg in enumerate(algorithms):
             observation, info = env.reset()
+            alg.reset()
+
             for step in range(env.max_steps):
                 print(f'\r{episode=} | {alg.name=} | {step=}', end='')
                 action = alg.return_action(observation)

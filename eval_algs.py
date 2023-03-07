@@ -1,5 +1,6 @@
 from algs.alg_buy_low_sell_high import BuyLowSellHighAlg
 from environments.sin_stock_env import SinStockEnv
+from environments.kirill_env import KirillEnv
 from plot_fucntions_and_classes.plotter import PlotterBigExperiments
 from globals import *
 
@@ -7,11 +8,15 @@ from globals import *
 def main():
     episodes = 1
     plotter = PlotterBigExperiments()
-    env = SinStockEnv()
+    # env = SinStockEnv()
+    env = KirillEnv(list_of_assets=stocks_names_list, data_dir='data/data.json')
     # alg = BuyLowSellHighAlg(env=env)
     window_sizes = [10, 20, 30, 40, 50, 60, 70]
     algorithms = [BuyLowSellHighAlg(env, params={'w1': w, 'w2': 20}) for w in window_sizes]
     for episode in range(episodes):
+        env.reset()
+        _ = [alg.reset() for alg in algorithms]
+
         for alg_index, alg in enumerate(algorithms):
             observation, info = env.reset()
             for step in range(env.max_steps):

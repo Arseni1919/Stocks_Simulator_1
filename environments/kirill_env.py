@@ -3,10 +3,12 @@ from globals import *
 
 
 class KirillEnv(MetaEnv):
-    def __init__(self, commission=0.001, risk_rate=1, to_plot=False, list_of_assets=None):
+    def __init__(self, commission=0.001, risk_rate=1, to_plot=False, list_of_assets=None,
+                 data_dir='../data/data.json'):
         super().__init__(commission, risk_rate, to_plot)
         self.name = 'KirillEnv'
         self.list_of_assets = list_of_assets
+        self.data_dir = data_dir
 
         # for init
         self.first_init = True
@@ -16,19 +18,17 @@ class KirillEnv(MetaEnv):
         self.days_counter = None
         self.curr_day_data = None
 
-    def build_days_dict(self, bars_df, to_load=True):
-        all_daytimes = [i_index[:10] for i_index in bars_df['index']]
-        all_daytimes = list(set(all_daytimes))
-        self.all_daytimes = all_daytimes
-        self.all_daytimes_shuffled = self.all_daytimes.copy()
-        random.shuffle(self.all_daytimes_shuffled)
-        self.days_counter = 0
+    def build_days_dict(self, to_load=True):
 
         if to_load:
             # Opening JSON file
-            with open('../data/data.json') as json_file:
+            with open(self.data_dir) as json_file:
                 self.days_dict = json.load(json_file)
+                self.all_daytimes = list(self.days_dict.keys())
         else:
+            bars_df = pd.read_csv('../data/all_data_up_to_15_1_22.csv')
+            all_daytimes = [i_index[:10] for i_index in bars_df['index']]
+            self.all_daytimes = list(set(all_daytimes))
             self.days_dict = {day: {asset: {'price': [], 'volume': []} for asset in self.list_of_assets} for day in all_daytimes}
             for index, row in bars_df.iterrows():
                 curr_day = row[0][:10]
@@ -38,8 +38,12 @@ class KirillEnv(MetaEnv):
                     if 'Volume' in i_asset:
                         self.days_dict[curr_day][i_asset[7:]]['volume'].append(i_value)
 
-            with open("../data/data.json", "w") as outfile:
+            with open(self.data_dir, "w") as outfile:
                 json.dump(self.days_dict, outfile)
+
+        self.all_daytimes_shuffled = self.all_daytimes.copy()
+        random.shuffle(self.all_daytimes_shuffled)
+        self.days_counter = 0
 
     def inner_reset(self):
         """
@@ -48,9 +52,7 @@ class KirillEnv(MetaEnv):
         if self.first_init:
             self.first_init = False
             # download a csv
-
-            bars_df = pd.read_csv('../data/all_data_up_to_15_1_22.csv')
-            self.build_days_dict(bars_df)
+            self.build_days_dict()
 
         # sample a random day (without repeats)
         if self.days_counter >= len(self.all_daytimes_shuffled):

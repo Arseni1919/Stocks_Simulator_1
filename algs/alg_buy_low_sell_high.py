@@ -39,6 +39,7 @@ class BuyLowSellHighAlg(MetaAlg):
         return action, next_in_hand
 
     def return_action(self, observation):
+        # self.params['w1'] = self.params['w1'] * 1.2
         action = [0, 0]
         step_count, in_hand = self.update_history(observation)
         w1, w2 = self.params['w1'], self.params['w2']
@@ -76,6 +77,7 @@ def main():
             next_observation, portfolio_worth, terminated, truncated, info = env.step(action)
             alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
             observation = next_observation
+
             if step % 200 == 0 or step == env.max_steps - 1:
                 # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})
                 alg.render(info={'episode': episode, 'step': step, 'w1': w1, 'w2': w2})

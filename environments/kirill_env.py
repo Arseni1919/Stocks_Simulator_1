@@ -3,7 +3,7 @@ from globals import *
 
 
 class KirillEnv(MetaEnv):
-    def __init__(self, commission=0.001, risk_rate=1, to_plot=False, list_of_assets=None,
+    def __init__(self, commission=0.0002, risk_rate=1, to_plot=False, list_of_assets=None,
                  data_dir='../data/data.json'):
         super().__init__(commission, risk_rate, to_plot)
         self.name = 'KirillEnv'

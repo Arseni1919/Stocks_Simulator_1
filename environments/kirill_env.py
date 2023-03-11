@@ -42,7 +42,7 @@ class KirillEnv(MetaEnv):
                 json.dump(self.days_dict, outfile)
 
         self.all_daytimes_shuffled = self.all_daytimes.copy()
-        random.shuffle(self.all_daytimes_shuffled)
+        # random.shuffle(self.all_daytimes_shuffled)
         self.days_counter = 0
 
     def inner_reset(self):

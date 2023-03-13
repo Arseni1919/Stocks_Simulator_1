@@ -50,7 +50,7 @@ class KirillEnv(MetaEnv):
         self.days_counter = 0
         self.n_days = len(self.all_daytimes_shuffled)
 
-    def inner_reset(self):
+    def inner_reset(self, params=None):
         """
         Sample a day
         """
@@ -58,11 +58,14 @@ class KirillEnv(MetaEnv):
         if self.days_counter >= len(self.all_daytimes_shuffled):
             self.days_counter = 0
             print('[INFO] finished round on data')
+        if params and 'episode' in params:
+            self.days_counter = params['episode']
         next_day = self.all_daytimes_shuffled[self.days_counter]
         self.days_counter += 1
         self.curr_day_data = self.days_dict[next_day]
-        first_asset = self.list_of_assets[0]
-        self.max_steps = len(self.curr_day_data[first_asset]['price'])
+        print(f'\n{next_day=}\n')
+        # first_asset = self.list_of_assets[0]
+        # self.max_steps = len(self.curr_day_data[first_asset]['price'])
 
     def generate_next_assets(self):
         step_count = self.step_count

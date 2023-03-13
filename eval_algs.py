@@ -1,4 +1,5 @@
 from algs.alg_buy_low_sell_high import BuyLowSellHighAlg
+from algs.momentum_last_hour import MomentumLastHour
 from environments.sin_stock_env import SinStockEnv
 from environments.kirill_env import KirillEnv
 from plot_fucntions_and_classes.plot_functions import *
@@ -36,7 +37,7 @@ class AlgsTester:
             for alg_index, alg in enumerate(self.algs_to_test):
 
                 # reset both the env and the algorithm
-                observation, info = self.env.reset()
+                observation, info = self.env.reset(params={'episode': episode})
                 alg.reset()
 
                 for step in range(self.max_steps):
@@ -78,7 +79,12 @@ def main():
     env = KirillEnv(list_of_assets=stocks_names_list, data_dir='data/data.json', to_shuffle=True)
     # alg = BuyLowSellHighAlg(env=env)
     window_sizes = [10, 20, 30, 40, 50, 60, 70]
-    algorithms = [BuyLowSellHighAlg(env, params={'w1': w, 'w2': 20}) for w in window_sizes]
+    algorithms = [
+        BuyLowSellHighAlg(env, params={'w1': 10, 'w2': 20}),
+        BuyLowSellHighAlg(env, params={'w1': 40, 'w2': 20}),
+        BuyLowSellHighAlg(env, params={'w1': 70, 'w2': 20}),
+        MomentumLastHour(env)
+    ]
 
     algs_tester = AlgsTester(env=env, algs_to_test=algorithms, to_render=True, episodes=episodes)
     stats_dict = algs_tester.evaluate()

@@ -41,12 +41,12 @@ class MetaEnv(ABC):
         if self.step_count == -1:
             raise RuntimeError('Do a resset first!')
 
-    def reset(self):
+    def reset(self, params=None):
         """
         :return: observation, info
         """
         self.max_steps = 390  # minutes
-        self.inner_reset()
+        self.inner_reset(params)
         # global data
         # self.history_assets = np.zeros((self.max_steps,))
         # self.history_volume = np.zeros((self.max_steps,))
@@ -74,7 +74,7 @@ class MetaEnv(ABC):
         info = {}
         return observation, info
 
-    def inner_reset(self):
+    def inner_reset(self, params=None):
         pass
 
     @abstractmethod

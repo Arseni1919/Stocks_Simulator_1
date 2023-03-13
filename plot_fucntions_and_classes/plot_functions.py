@@ -168,12 +168,14 @@ def plot_algs_returns(ax, info):
         ax.plot(returns_mean, '--', alpha=0.7, label=f'{alg_name}')
 
         # returns_std = alg_stats_dict['returns'][:episode+1, :].std(axis=0)
+        # appendix = 'range:std'
         # ax.fill_between(range(max_steps), returns_mean + returns_std, returns_mean - returns_std, alpha=0.2)
 
         returns_max = alg_stats_dict['returns'][:episode+1, :].max(axis=0)
         returns_min = alg_stats_dict['returns'][:episode+1, :].min(axis=0)
+        appendix = 'range:min-max'
         ax.fill_between(range(max_steps), returns_max, returns_min, alpha=0.2)
 
         ax.legend()
         # ax.set_xlim([0, max_steps])
-        ax.set_title(f'Portfolio Worth (ep: {episode + 1}, step: {step})')
+        ax.set_title(f'Portfolio Worth (ep: {episode + 1}, step: {step}, {appendix})')

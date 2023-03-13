@@ -62,8 +62,8 @@ def plot_rewards(ax, info):
     h_cash = history_cash[:step_count]
     h_hold_w = history_holdings_worth[:step_count]
     h_port_w = history_portfolio_worth[:step_count]
-    ax.plot(h_cash, alpha=0.7, label='cash')
-    ax.plot(h_hold_w, alpha=0.7, label='holdings_worth')
+    # ax.plot(h_cash, alpha=0.7, label='cash')
+    # ax.plot(h_hold_w, alpha=0.7, label='holdings_worth')
     color = 'lightgreen' if h_port_w[-1] > 100 else 'brown'
     ax.plot(h_port_w, c=color, alpha=1, label='portfolio_worth')
     buy_steps = np.where(history_actions[main_asset][:step_count] == 1)

@@ -10,7 +10,7 @@ class MetaEnv(ABC):
         self.to_plot = to_plot
         self.action_space = np.array([-1, 0, 1])
         self.step_count = -1
-        self.max_steps = None  # minutes
+        self.max_steps = 390  # minutes
         # global data:
         self.list_of_assets = []
         self.history_assets = None

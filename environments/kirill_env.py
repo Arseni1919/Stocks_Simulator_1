@@ -4,19 +4,22 @@ from globals import *
 
 class KirillEnv(MetaEnv):
     def __init__(self, commission=0.0002, risk_rate=1, to_plot=False, list_of_assets=None,
-                 data_dir='../data/data.json'):
+                 data_dir='../data/data.json', to_shuffle=True):
         super().__init__(commission, risk_rate, to_plot)
         self.name = 'KirillEnv'
         self.list_of_assets = list_of_assets
         self.data_dir = data_dir
+        self.to_shuffle = to_shuffle
 
         # for init
-        self.first_init = True
         self.days_dict = None
         self.all_daytimes = None
         self.all_daytimes_shuffled = None
         self.days_counter = None
         self.curr_day_data = None
+        self.n_days = None
+
+        self.build_days_dict()
 
     def build_days_dict(self, to_load=True):
 
@@ -42,18 +45,15 @@ class KirillEnv(MetaEnv):
                 json.dump(self.days_dict, outfile)
 
         self.all_daytimes_shuffled = self.all_daytimes.copy()
-        # random.shuffle(self.all_daytimes_shuffled)
+        if self.to_shuffle:
+            random.shuffle(self.all_daytimes_shuffled)
         self.days_counter = 0
+        self.n_days = len(self.all_daytimes_shuffled)
 
     def inner_reset(self):
         """
         Sample a day
         """
-        if self.first_init:
-            self.first_init = False
-            # download a csv
-            self.build_days_dict()
-
         # sample a random day (without repeats)
         if self.days_counter >= len(self.all_daytimes_shuffled):
             self.days_counter = 0

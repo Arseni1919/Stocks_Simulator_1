@@ -31,7 +31,7 @@ class SomeAlg(MetaAlg):
     def __init__(self, env, to_plot=False, params=None):
         super().__init__(env, to_plot, params)
         # init
-        # <yout init>
+        # <your init>
         self.name = f'<give a name>'
 
     def return_action(self, observation):

@@ -61,7 +61,10 @@ class SomeAlg(MetaAlg):
         # <calculate something>
         # <...>
         # return list of actions
+        return [(self.main_asset, 0)]
+        # or
         return [(self.main_asset, 0), (self.main_asset, -1)]
+
 
     def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
         # <do something after taking an action>

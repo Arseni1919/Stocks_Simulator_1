@@ -59,11 +59,11 @@ class KirillEnv(MetaEnv):
             self.days_counter = 0
             print('[INFO] finished round on data')
         if params and 'episode' in params:
-            self.days_counter = params['episode']
+            self.days_counter = params['episode'] % self.n_days
         next_day = self.all_daytimes_shuffled[self.days_counter]
         self.days_counter += 1
         self.curr_day_data = self.days_dict[next_day]
-        print(f'\n{next_day=}\n')
+        # print(f'\n{next_day=}\n')
         # first_asset = self.list_of_assets[0]
         # self.max_steps = len(self.curr_day_data[first_asset]['price'])
 

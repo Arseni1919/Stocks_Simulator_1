@@ -22,7 +22,7 @@ class MomentumLastHour(MetaAlg):
         return result * multiplier
 
     def return_action(self, observation):
-        action = [0, 0]
+        action = 0
         step_count, in_hand = self.update_history(observation)
 
         ts = pd.Series(self.history_assets[self.main_asset][0:step_count])
@@ -30,12 +30,12 @@ class MomentumLastHour(MetaAlg):
         slope_day_start = ts.rolling(400, min_periods=22).apply(self.calc_slope).fillna(0.0001)
 
         if step_count == 330 and (slope_day_start[:330] >= -2).all():
-            action[0] = 1
+            action = 1
 
         if step_count == 330 and (slope_day_start[:330] <= 2).all():
-            action[0] = -1
+            action = -1
 
-        return [(self.main_asset, action[0]), (self.main_asset, action[1])]
+        return [(self.main_asset, action)]
 
     def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
         step_count = observation['step_count']

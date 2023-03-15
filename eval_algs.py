@@ -59,7 +59,7 @@ class AlgsTester:
 
     def render(self, episode, alg_index, alg, step):
         if self.to_render:
-            if episode % 10 == 0 and alg_index == len(self.algs_to_test) - 1 and step == self.max_steps - 1:
+            if episode % 1 == 0 and alg_index == len(self.algs_to_test) - 1 and step == self.max_steps - 1:
                 info = {
                     'episode': episode,
                     'alg_index': alg_index,

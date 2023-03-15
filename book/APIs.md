@@ -1,3 +1,16 @@
+# API
+
+## Days Dictionary
+
+```python
+{day: {
+    asset: {
+        'price': [], 
+        'volume': []
+    } for asset in self.list_of_assets} for day in all_daytimes
+}
+```
+
 ## Simulators API
 
 ### Usage:

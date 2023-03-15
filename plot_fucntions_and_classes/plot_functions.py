@@ -167,9 +167,12 @@ def plot_algs_returns(ax, info):
         returns_mean = alg_stats_dict['returns'][:episode+1, :].mean(axis=0)
         ax.plot(returns_mean, '--', alpha=0.7, label=f'{alg_name}')
 
-        # returns_std = alg_stats_dict['returns'][:episode+1, :].std(axis=0)
+        returns_std = alg_stats_dict['returns'][:episode+1, :].std(axis=0)
         # appendix = 'range:std'
-        # ax.fill_between(range(max_steps), returns_mean + returns_std, returns_mean - returns_std, alpha=0.2)
+        # ax.fill_between(np.arange(max_steps)[::10], returns_mean + returns_std, returns_mean - returns_std, alpha=0.2)
+        std_every = 20
+        ax.errorbar(np.arange(max_steps)[::std_every], returns_mean[::std_every], returns_std[::std_every],
+                    linestyle='None', marker='.', alpha=0.2)
 
         returns_max = alg_stats_dict['returns'][:episode+1, :].max(axis=0)
         returns_min = alg_stats_dict['returns'][:episode+1, :].min(axis=0)

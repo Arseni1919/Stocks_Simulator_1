@@ -1,10 +1,23 @@
+import datetime
+
 from environments.env_meta_class import MetaEnv
 from globals import *
 
 
+def to_datestr(input_str):
+    if '/' in input_str:
+        datetime_var = datetime.datetime.strptime(input_str[:10], '%d/%m/%Y')
+    elif '-' in input_str:
+        datetime_var = datetime.datetime.strptime(input_str[:10], '%Y-%m-%d')
+    else:
+        raise RuntimeError('')
+    output_str = datetime_var.strftime('%Y-%m-%d')
+    return output_str
+
+
 class KirillEnv(MetaEnv):
     def __init__(self, commission=0.0002, risk_rate=1, to_plot=False, list_of_assets=None,
-                 data_dir='../data/data.json', to_shuffle=True):
+                 data_dir='../data/data.json', to_shuffle=True, to_load=True):
         super().__init__(commission, risk_rate, to_plot)
         self.name = 'KirillEnv'
         self.list_of_assets = list_of_assets
@@ -19,7 +32,7 @@ class KirillEnv(MetaEnv):
         self.curr_day_data = None
         self.n_days = None
 
-        self.build_days_dict()
+        self.build_days_dict(to_load)
 
     def build_days_dict(self, to_load=True):
 
@@ -30,11 +43,12 @@ class KirillEnv(MetaEnv):
                 self.all_daytimes = list(self.days_dict.keys())
         else:
             bars_df = pd.read_csv('../data/all_data_up_to_15_1_22.csv')
-            all_daytimes = [i_index[:10] for i_index in bars_df['index']]
+            all_daytimes = [to_datestr(i_index) for i_index in bars_df['index']]
             self.all_daytimes = list(set(all_daytimes))
+            self.all_daytimes.sort(key=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d'))
             self.days_dict = {day: {asset: {'price': [], 'volume': []} for asset in self.list_of_assets} for day in all_daytimes}
             for index, row in bars_df.iterrows():
-                curr_day = row[0][:10]
+                curr_day = to_datestr(row[0])
                 for i_asset, i_value in row.iteritems():
                     if 'Close' in i_asset:
                         self.days_dict[curr_day][i_asset[6:]]['price'].append(i_value)
@@ -77,7 +91,7 @@ class KirillEnv(MetaEnv):
 
 def main():
     episodes = 1
-    env = KirillEnv(to_plot=True, list_of_assets=stocks_names_list)
+    env = KirillEnv(to_plot=True, list_of_assets=stocks_names_list, to_load=True)
     observation, info = env.reset()
     main_asset = 'SPY'
     for episode in range(episodes):

@@ -34,11 +34,19 @@ new_percentage_return = current_price / first_price  # always positive
 - RSI
 - MACD - sucks - depends too much on the price
 - close price relative to high-low line inside candle (for example 60%)
+```
+indecator = (high - close) / (high - low)
+```
 - volume is high (2 std on last 30 minutes above median on last 5 minutes)
-- sharp ratio - how much return (profit) divided by std $(x_{t-1} - x{t})^2$
+- sharp ratio - how much return (profit) divided by std $(x_{t-1} - x_{t})^2$
 ```
-indecator = (close) / (high - low)
+sharp_ratio = max(sharp_ratio, 0)
 ```
+- std on VIXY - last 30 minutes - minute per minute change
+- MA
+- Moving Median
+- Exponential MA
+
 
 (boolean indicator) - if several minutes this indicator is low (less than 20%) - then the market is falling
 

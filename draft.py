@@ -1,3 +1,5 @@
-l = [22, 33, 44]
+import numpy as np
 
-print(l[:1])
+l = np.array([22, 33, 44])
+
+print(l / 3 - 1)

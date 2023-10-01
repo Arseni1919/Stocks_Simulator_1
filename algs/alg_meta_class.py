@@ -66,8 +66,8 @@ class MetaAlg(ABC):
             self.history_volume[asset][step_count] = observation['asset_volume'][asset]
         # agent data:
         self.history_cash[step_count] = observation['history_cash']
-        self.history_holdings[step_count] = observation['history_holdings']
-        self.history_holdings_worth[step_count] = observation['history_holdings_worth']
+        self.history_holdings[step_count] = observation['history_portion_of_asset']
+        self.history_holdings_worth[step_count] = observation['history_portion_of_asset_worth']
         self.history_orders[step_count] = observation['history_orders']
         self.history_portfolio_worth[step_count] = observation['history_portfolio_worth']
         self.history_commission_value[step_count] = observation['history_commission_value']

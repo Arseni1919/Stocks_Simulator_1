@@ -54,13 +54,13 @@ def plot_rewards(ax, info):
     step_count = info['step_count']
     max_steps = info['max_steps']
     history_cash = info['history_cash']
-    history_holdings_worth = info['history_holdings_worth']
+    history_portion_of_asset_worth = info['history_portion_of_asset_worth']
     history_portfolio_worth = info['history_portfolio_worth']
     history_actions = info['history_actions']
     main_asset = info['main_asset']
 
     h_cash = history_cash[:step_count]
-    h_hold_w = history_holdings_worth[:step_count]
+    h_hold_w = history_portion_of_asset_worth[:step_count]
     h_port_w = history_portfolio_worth[:step_count]
     # ax.plot(h_cash, alpha=0.7, label='cash')
     # ax.plot(h_hold_w, alpha=0.7, label='holdings_worth')
@@ -113,11 +113,11 @@ def plot_property(ax, info):
     ax.cla()
     step_count = info['step_count']
     max_steps = info['max_steps']
-    history_holdings = info['history_holdings']
+    history_portion_of_asset = info['history_portion_of_asset']
 
     step_count = step_count if step_count >= 0 else max_steps - 1
-    ax.plot(history_holdings[:step_count], c='brown', alpha=0.7)
-    ax.fill_between(np.arange(step_count), np.zeros(step_count), history_holdings[:step_count],
+    ax.plot(history_portion_of_asset[:step_count], c='brown', alpha=0.7)
+    ax.fill_between(np.arange(step_count), np.zeros(step_count), history_portion_of_asset[:step_count],
                     color='coral', alpha=0.5)
     # ax.set_yticks([-1, 0, 1])
     # ax.set_yticklabels(['Short', 'Hold', 'Long'])

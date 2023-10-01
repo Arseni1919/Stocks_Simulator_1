@@ -59,8 +59,8 @@ class SomeAlg(MetaAlg):
             observation['in_hand'] = NUMBER (-1, 0, 1)
             # agent data:
             observation['history_cash'] = NUMBER
-            observation['history_holdings'] = NUMBER
-            observation['history_holdings_worth'] = NUMBER
+            observation['history_portion_of_asset'] = NUMBER
+            observation['history_portion_of_asset_worth'] = NUMBER
             observation['history_orders'] = NUMBER
             observation['history_portfolio_worth'] = NUMBER
             observation['history_commission_value'] = NUMBER

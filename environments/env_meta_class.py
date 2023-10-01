@@ -18,8 +18,8 @@ class MetaEnv(ABC):
         # agent data:
         self.history_actions = None
         self.history_orders = None  # how many orders we did in any kind
-        self.history_holdings = None  # a portion of long or short
-        self.history_holdings_worth = None  # a worth of a portion of long or short
+        self.history_portion_of_asset = None  # a portion of long or short
+        self.history_portion_of_asset_worth = None  # a worth of a portion of long or short
         self.history_cash = None  # in dollars
         self.history_commission_value = None
         self.history_portfolio_worth = None
@@ -62,8 +62,8 @@ class MetaEnv(ABC):
         # agent data
         self.history_actions = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         self.history_cash = np.zeros((self.max_steps,))
-        self.history_holdings = np.zeros((self.max_steps,))
-        self.history_holdings_worth = np.zeros((self.max_steps,))
+        self.history_portion_of_asset = np.zeros((self.max_steps,))
+        self.history_portion_of_asset_worth = np.zeros((self.max_steps,))
         self.history_orders = np.zeros((self.max_steps,))
         self.history_portfolio_worth = np.zeros((self.max_steps,))
         self.history_commission_value = np.zeros((self.max_steps,))
@@ -95,8 +95,8 @@ class MetaEnv(ABC):
         step_count = 1 if step_count == 0 else step_count
         step_count = 0 if step_count == -1 else step_count
         observation['history_cash'] = self.history_cash[step_count - 1]
-        observation['history_holdings'] = self.history_holdings[step_count - 1]
-        observation['history_holdings_worth'] = self.history_holdings_worth[step_count - 1]
+        observation['history_portion_of_asset'] = self.history_portion_of_asset[step_count - 1]
+        observation['history_portion_of_asset_worth'] = self.history_portion_of_asset_worth[step_count - 1]
         observation['history_orders'] = self.history_orders[step_count - 1]
         observation['history_portfolio_worth'] = self.history_portfolio_worth[step_count - 1]
         observation['history_commission_value'] = self.history_commission_value[step_count - 1]
@@ -133,7 +133,7 @@ class MetaEnv(ABC):
     def enter_long(self, asset, current_price):
         self.in_hand[asset] = 1
         cash_to_invest_before_commission = self.cash * self.risk_rate
-        self.cash = self.cash - cash_to_invest_before_commission
+        self.cash -= cash_to_invest_before_commission
         cash_to_invest_after_commission = cash_to_invest_before_commission / (1 + self.commission)
         self.portion_of_asset[asset] = cash_to_invest_after_commission / current_price
         self.commission_value = self.commission * cash_to_invest_after_commission
@@ -220,7 +220,7 @@ class MetaEnv(ABC):
         return observation, portfolio_worth, terminated, truncated, info
 
     def update_history_after_action(self, asset, current_price):
-        self.history_holdings[self.step_count] = self.portion_of_asset[asset]
+        self.history_portion_of_asset[self.step_count] = self.portion_of_asset[asset]
         self.history_cash[self.step_count] = self.cash
         self.history_commission_value[self.step_count] += self.commission_value
         if self.portion_of_asset[asset] > 0:  # long
@@ -231,7 +231,7 @@ class MetaEnv(ABC):
             h_holdings_worth = self.short_cash[asset] + revenue_to_receive_before_commission
         else:  # portion_of_asset is 0
             h_holdings_worth = 0
-        self.history_holdings_worth[self.step_count] = h_holdings_worth
+        self.history_portion_of_asset_worth[self.step_count] = h_holdings_worth
         if self.cash + h_holdings_worth == 0:
             print('here')
         self.history_portfolio_worth[self.step_count] = self.cash + h_holdings_worth
@@ -257,8 +257,8 @@ class MetaEnv(ABC):
         info['history_volume'] = self.history_volume
         info['history_cash'] = self.history_cash
         info['history_orders'] = self.history_orders
-        info['history_holdings'] = self.history_holdings
-        info['history_holdings_worth'] = self.history_holdings_worth
+        info['history_portion_of_asset'] = self.history_portion_of_asset
+        info['history_portion_of_asset_worth'] = self.history_portion_of_asset_worth
         info['history_portfolio_worth'] = self.history_portfolio_worth
         info['history_commission_value'] = self.history_commission_value
 

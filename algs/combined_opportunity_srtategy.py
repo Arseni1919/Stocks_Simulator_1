@@ -5,7 +5,7 @@ from environments.kirill_env import KirillEnv
 from algs.alg_meta_class import MetaAlg
 from plot_fucntions_and_classes.plot_functions import *
 
-
+# CHECK!!!!!!!!!!!!!!!!!
 class OpportunityAlg(MetaAlg):
 
     def __init__(self, env, to_plot=False, params=None):

@@ -21,7 +21,6 @@ class MetaAlg(ABC):
         self.history_orders = None
         self.history_portfolio_worth = None
         self.history_commission_value = None
-        self.history_termination = None
         # for plots
         if self.to_plot:
             self.subplot_rows = 2
@@ -42,7 +41,6 @@ class MetaAlg(ABC):
         self.history_orders = np.zeros((self.max_steps,))
         self.history_portfolio_worth = np.zeros((self.max_steps,))
         self.history_commission_value = np.zeros((self.max_steps,))
-        self.history_termination = np.zeros((self.max_steps,))
 
     @abstractmethod
     def return_action(self, observation):

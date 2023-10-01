@@ -17,6 +17,38 @@ class OpportunityAlg(MetaAlg):
         self.no_long_count = 0
         self.no_short_count = 0
 
+        # for plots
+        if self.to_plot:
+            self.subplot_rows = 2
+            self.subplot_cols = 3
+            self.fig, self.ax = plt.subplots(self.subplot_rows, self.subplot_cols, figsize=(14, 7))
+            self.ax_volume = self.ax[0, 0].twinx()
+
+    def render(self, info):
+        if self.to_plot:
+            info['step_count'] = self.env.step_count
+            info['max_steps'] = self.max_steps
+            info['history_assets'] = self.history_assets
+            info['history_actions'] = self.history_actions
+            info['history_volume'] = self.history_volume
+            info['history_cash'] = self.history_cash
+            info['history_orders'] = self.history_orders
+            info['history_portion_of_asset'] = self.env.history_portion_of_asset
+            info['history_portion_of_asset_worth'] = self.env.history_portion_of_asset_worth
+            info['history_portfolio_worth'] = self.history_portfolio_worth
+            info['history_commission_value'] = self.history_commission_value
+            info['main_asset'] = self.main_asset
+
+            plot_asset_and_actions(self.ax[0, 0], info=info)
+            # plot_volume(ax_volume, info=info)
+            plot_rewards(self.ax[0, 1], info=info)
+            plot_commissions(self.ax[0, 2], info=info)
+            plot_property(self.ax[1, 0], info=info)
+            # plot_variance(ax[1, 1], info=info)
+            plot_orders(self.ax[1, 1], info=info)
+            plot_average(self.ax[1, 2], info=info)
+            plt.pause(0.01)
+
     @staticmethod
     def calc_rsi(series, rsi_period=14):
         chg = series.diff(1)
@@ -87,7 +119,6 @@ class OpportunityAlg(MetaAlg):
         step_count = observation['step_count']
         last_action_asset, last_action_value = action[-1]
         self.history_actions[last_action_asset][step_count] = last_action_value
-        self.history_termination[step_count] = terminated
 
 
 def main():
@@ -110,7 +141,7 @@ def main():
             alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
             observation = next_observation
 
-            if step % 200 == 0 or step == env.max_steps - 1:
+            if step % 100 == 0 or step == env.max_steps - 1:
                 # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})
                 alg.render(info={'episode': episode, 'step': step, 'w1': 10, 'w2': 20})
 

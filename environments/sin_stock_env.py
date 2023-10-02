@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from environments.env_meta_class import MetaEnv
+from environments.stock_env_class import StockEnv
 from plot_fucntions_and_classes.plot_functions import *
 from globals import *
 
 
-class SinStockEnv(MetaEnv):
+class SinStockEnv(StockEnv):
     def __init__(self, commission=0.001, risk_rate=1, to_plot=False):
         super().__init__(commission, risk_rate, to_plot)
         self.name = 'SinStockEnv'

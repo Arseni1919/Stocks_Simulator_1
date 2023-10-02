@@ -2,17 +2,31 @@ from globals import *
 from plot_fucntions_and_classes.plot_functions import *
 
 
-class MetaEnv(ABC):
-    def __init__(self, commission=0.001, risk_rate=1, to_plot=False):
-        self.name = 'MetaEnv'
+def to_datestr(input_str):
+    if '/' in input_str:
+        datetime_var = datetime.datetime.strptime(input_str[:10], '%d/%m/%Y')
+    elif '-' in input_str:
+        datetime_var = datetime.datetime.strptime(input_str[:10], '%Y-%m-%d')
+    else:
+        raise RuntimeError('')
+    output_str = datetime_var.strftime('%Y-%m-%d')
+    return output_str
+
+
+class StockEnv:
+    def __init__(self, commission=0.001, risk_rate=1, to_plot=False, list_of_assets=None,
+                 data_dir='../data/data.json', to_shuffle=True, to_load=True):
+        self.name = 'StockEnv'
         self.commission = commission  # in ratio
         self.risk_rate = risk_rate  # in ratio
         self.to_plot = to_plot
+        self.list_of_assets = list_of_assets
+        self.data_dir = data_dir
+        self.to_shuffle = to_shuffle
         self.action_space = np.array([-1, 0, 1])
         self.step_count = -1
         self.max_steps = 390  # minutes
         # global data:
-        self.list_of_assets = []
         self.history_assets = None
         self.history_volume = None
         # agent data:
@@ -30,12 +44,50 @@ class MetaEnv(ABC):
         self.short_cash = None
         self.commission_value = 0
 
+        self.days_dict = None
+        self.all_daytimes = None
+        self.all_daytimes_shuffled = None
+        self.days_counter = None
+        self.curr_day_data = None
+        self.n_days = None
+
+        self.build_days_dict(to_load)
+
         # for plots
         if self.to_plot:
             self.subplot_rows = 2
             self.subplot_cols = 3
             self.fig, self.ax = plt.subplots(self.subplot_rows, self.subplot_cols, figsize=(14, 7))
             self.ax_volume = self.ax[0, 0].twinx()
+
+    def build_days_dict(self, to_load=True):
+        if to_load:
+            # Opening JSON file
+            with open(self.data_dir) as json_file:
+                self.days_dict = json.load(json_file)
+                self.all_daytimes = list(self.days_dict.keys())
+        else:
+            bars_df = pd.read_csv('../data/all_data_up_to_15_1_22.csv')
+            all_daytimes = [to_datestr(i_index) for i_index in bars_df['index']]
+            self.all_daytimes = list(set(all_daytimes))
+            self.all_daytimes.sort(key=lambda x: datetime.datetime.strptime(x, '%Y-%m-%d'))
+            self.days_dict = {day: {asset: {'price': [], 'volume': []} for asset in self.list_of_assets} for day in all_daytimes}
+            for index, row in bars_df.iterrows():
+                curr_day = to_datestr(row[0])
+                for i_asset, i_value in row.iteritems():
+                    if 'Close' in i_asset:
+                        self.days_dict[curr_day][i_asset[6:]]['price'].append(i_value)
+                    if 'Volume' in i_asset:
+                        self.days_dict[curr_day][i_asset[7:]]['volume'].append(i_value)
+
+            with open(self.data_dir, "w") as outfile:
+                json.dump(self.days_dict, outfile)
+
+        self.all_daytimes_shuffled = self.all_daytimes.copy()
+        if self.to_shuffle:
+            random.shuffle(self.all_daytimes_shuffled)
+        self.days_counter = 0
+        self.n_days = len(self.all_daytimes_shuffled)
 
     def reset_check(self):
         if self.step_count == -1:
@@ -75,11 +127,28 @@ class MetaEnv(ABC):
         return observation, info
 
     def inner_reset(self, params=None):
-        pass
+        """
+        Sample a day
+        """
+        # sample a random day (without repeats)
+        if self.days_counter >= len(self.all_daytimes_shuffled):
+            self.days_counter = 0
+            print('[INFO] finished round on data')
+        if params and 'episode' in params:
+            self.days_counter = params['episode'] % self.n_days
+        next_day = self.all_daytimes_shuffled[self.days_counter]
+        self.days_counter += 1
+        self.curr_day_data = self.days_dict[next_day]
+        # print(f'\n{next_day=}\n')
+        # first_asset = self.list_of_assets[0]
+        # self.max_steps = len(self.curr_day_data[first_asset]['price'])
 
-    @abstractmethod
     def generate_next_assets(self):
-        pass
+        step_count = self.step_count
+        for asset in self.list_of_assets:
+            if step_count < len(self.curr_day_data[asset]['price']):
+                self.history_assets[asset][step_count] = self.curr_day_data[asset]['price'][step_count]
+                self.history_volume[asset][step_count] = self.curr_day_data[asset]['volume'][step_count]
 
     def generate_next_observation(self):
         observation = {}
@@ -271,20 +340,27 @@ class MetaEnv(ABC):
         plot_orders(ax[1, 1], info=info)
         plot_average(ax[1, 2], info=info)
 
-# def cla_axes(self):
-#     self.ax_volume.cla()
-#     if self.ax.ndim == 1:
-#         for i_ax in self.ax:
-#             i_ax.cla()
-#     if self.ax.ndim == 2:
-#         for row_ax in self.ax:
-#             for col_ax in row_ax:
-#                 col_ax.cla()
 
-# def cla_axes(self):
-#     self.ax_volume.cla()
-#     for ax_i in self.ax.reshape(-1):
-#         ax_i.cla()
+
+def main():
+    episodes = 1
+    env = StockEnv(to_plot=True, list_of_assets=stocks_names_list, to_load=True)
+    observation, info = env.reset()
+    main_asset = 'SPY'
+    for episode in range(episodes):
+        for step in range(env.max_steps):
+            print(f'\r{episode=} | {step=}', end='')
+            action = env.sample_action(main_asset)
+            env.step(action)
+            if step % 200 == 0 or step == env.max_steps - 1:
+                env.render(info={'episode': episode,
+                                 'step': step, 'main_asset': main_asset})
+
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
 
 
 

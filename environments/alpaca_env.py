@@ -1,9 +1,9 @@
 
-from environments.env_meta_class import MetaEnv
+from environments.stock_env_class import StockEnv
 from globals import *
 
 
-class AlpacaEnv(MetaEnv):
+class AlpacaEnv(StockEnv):
     def __init__(self, commission=0.001, risk_rate=1, to_plot=False, list_of_assets=None):
         super().__init__(commission, risk_rate, to_plot)
         self.name = 'AlpacaEnv'

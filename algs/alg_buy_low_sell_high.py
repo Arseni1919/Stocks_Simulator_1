@@ -1,7 +1,7 @@
 from globals import *
 from environments.sin_stock_env import SinStockEnv
 from environments.alpaca_env import AlpacaEnv
-from environments.kirill_env import KirillEnv
+from environments.stock_env_class import StockEnv
 from algs.alg_meta_class import MetaAlg
 from plot_fucntions_and_classes.plot_functions import *
 
@@ -58,7 +58,6 @@ class BuyLowSellHighAlg(MetaAlg):
         step_count = observation['step_count']
         last_action_asset, last_action_value = action[-1]
         self.history_actions[last_action_asset][step_count] = last_action_value
-        self.history_termination[step_count] = terminated
 
 
 def main():

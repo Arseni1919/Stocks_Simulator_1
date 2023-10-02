@@ -54,6 +54,10 @@ class MetaAlg(ABC):
     def update_after_action(self, observation, action, reward, next_observation, terminated, truncated):
         pass
 
+    @abstractmethod
+    def update_parameters(self):
+        pass
+
     def update_history(self, observation):
         # current state data:
         step_count = observation['step_count']

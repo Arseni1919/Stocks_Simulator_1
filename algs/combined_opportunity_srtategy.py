@@ -1,7 +1,7 @@
 from globals import *
 from environments.sin_stock_env import SinStockEnv
 from environments.alpaca_env import AlpacaEnv
-from environments.kirill_env import KirillEnv
+from environments.stock_env_class import StockEnv
 from algs.alg_meta_class import MetaAlg
 from plot_fucntions_and_classes.plot_functions import *
 
@@ -67,6 +67,9 @@ class OpportunityAlg(MetaAlg):
         result = (window_df.iloc[len(window_df) - 1] - window_df.iloc[0]) / len(window_df)
         return result * multiplier
 
+    def update_parameters(self):
+        print('\nupdate parameters')
+
     def return_action(self, observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit):
         action = [0, 0]
         step_count, in_hand = self.update_history(observation)
@@ -123,30 +126,32 @@ class OpportunityAlg(MetaAlg):
 
 
 def main():
-    episodes = 10
+    episodes = 2
     rsi_period = 7
     rsi_trigger = 0.3
     slope_start = 60
     slope_angle = 0.05
     exit = 20         # exit_after_consecutive
-    env = KirillEnv(list_of_assets=stocks_names_list, to_shuffle=False)
+    env = StockEnv(list_of_assets=stocks_names_list, to_shuffle=False)
     alg = OpportunityAlg(env=env, to_plot=True)
-    observation, info = env.reset()
-    alg.reset()
 
-    for episode in range(episodes):
-        for step in range(env.max_steps):
-            print(f'\r{episode} | {step}', end='')
-            action = alg.return_action(observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit)
-            next_observation, portfolio_worth, terminated, truncated, info = env.step(action)
-            alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
-            observation = next_observation
+    for i_update in range(10):
+        alg.update_parameters()
+        for episode in range(episodes):
+            observation, info = env.reset()
+            alg.reset()
+            for step in range(env.max_steps):
+                print(f'\r{episode} | {step}', end='')
+                action = alg.return_action(observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit)
+                next_observation, portfolio_worth, terminated, truncated, info = env.step(action)
+                alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
+                observation = next_observation
 
-            if step % 100 == 0 or step == env.max_steps - 1:
-                # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})
-                alg.render(info={'episode': episode, 'step': step, 'w1': 10, 'w2': 20})
+                if step % 1000 == 0 or step == env.max_steps - 1:
+                    # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})
+                    alg.render(info={'episode': episode, 'step': step, 'w1': 10, 'w2': 20})
 
-    plt.pause(0.1)
+    plt.show()
 
     ###
     # A function I used to get a df with result for all the day,

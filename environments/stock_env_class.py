@@ -30,25 +30,26 @@ class StockEnv:
         self.history_assets = None
         self.history_volume = None
         # agent data:
-        self.history_actions = None
+        self.history_actions = None  # ebanutii
         self.history_orders = None  # how many orders we did in any kind
         self.history_portion_of_asset = None  # a portion of long or short
         self.history_portion_of_asset_worth = None  # a worth of a portion of long or short
         self.history_cash = None  # in dollars
         self.history_commission_value = None
         self.history_portfolio_worth = None
+        self.history_margin_calls = None
         # agent's instant data
         self.in_hand = None
         self.portion_of_asset = None
         self.cash = 100
-        self.short_cash = None
+        self.cash_from_short = None
         self.commission_value = 0
 
-        self.days_dict = None
+        self.days_dict = None  # json is here
+        self.curr_day_data = None  # json on the specific day
         self.all_daytimes = None
         self.all_daytimes_shuffled = None
         self.days_counter = None
-        self.curr_day_data = None
         self.n_days = None
 
         self.build_days_dict(to_load)
@@ -108,17 +109,18 @@ class StockEnv:
         self.step_count = 0
         self.in_hand = {asset: 0 for asset in self.list_of_assets}  # -1 -> short, 0 -> nothing, 1 -> long
         self.cash = 100
-        self.short_cash = {asset: 0 for asset in self.list_of_assets}
+        self.cash_from_short = {asset: 0 for asset in self.list_of_assets}
         self.portion_of_asset = {asset: 0 for asset in self.list_of_assets}
         self.commission_value = 0
         # agent data
-        self.history_actions = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
+        self.history_actions = {asset: [[] for _ in range(self.max_steps)] for asset in self.list_of_assets}
         self.history_cash = np.zeros((self.max_steps,))
         self.history_portion_of_asset = np.zeros((self.max_steps,))
         self.history_portion_of_asset_worth = np.zeros((self.max_steps,))
         self.history_orders = np.zeros((self.max_steps,))
         self.history_portfolio_worth = np.zeros((self.max_steps,))
         self.history_commission_value = np.zeros((self.max_steps,))
+        self.history_margin_calls = np.zeros((self.max_steps,))
         self.history_cash[0] = self.cash
         self.history_portfolio_worth[0] = self.cash
 
@@ -167,9 +169,10 @@ class StockEnv:
         observation['history_portion_of_asset'] = self.history_portion_of_asset[step_count - 1]
         observation['history_portion_of_asset_worth'] = self.history_portion_of_asset_worth[step_count - 1]
         observation['history_orders'] = self.history_orders[step_count - 1]
+        # TODO:
         observation['history_portfolio_worth'] = self.history_portfolio_worth[step_count - 1]
+        observation['portfolio_worth'] = self.history_portfolio_worth[self.step_count]
         observation['history_commission_value'] = self.history_commission_value[step_count - 1]
-
         return observation
 
     def sample_action(self, asset=None):
@@ -184,7 +187,7 @@ class StockEnv:
         self.cash -= cash_to_invest_before_commission
         cash_to_invest_after_commission = cash_to_invest_before_commission / (1 + self.commission)
         self.portion_of_asset[asset] = - cash_to_invest_after_commission / current_price
-        self.short_cash[asset] = cash_to_invest_after_commission
+        self.cash_from_short[asset] = cash_to_invest_after_commission
         self.commission_value = self.commission * cash_to_invest_after_commission
         return True
 
@@ -193,10 +196,10 @@ class StockEnv:
         loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
         self.commission_value = self.commission * loan_to_receive_before_commission
         loan_to_receive_after_commission = loan_to_receive_before_commission - self.commission_value
-        revenue_to_receive_after_commission = self.short_cash[asset] - loan_to_receive_after_commission
-        self.cash += self.short_cash[asset] + revenue_to_receive_after_commission
+        revenue_to_receive_after_commission = self.cash_from_short[asset] - loan_to_receive_after_commission
+        self.cash += self.cash_from_short[asset] + revenue_to_receive_after_commission
         self.portion_of_asset[asset] = 0
-        self.short_cash[asset] = 0
+        self.cash_from_short[asset] = 0
         return True
 
     def enter_long(self, asset, current_price):
@@ -221,8 +224,10 @@ class StockEnv:
         loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
         commission_value = self.commission * loan_to_receive_before_commission
         loan_to_receive_after_commission = loan_to_receive_before_commission - commission_value
-        if 1.8 * self.short_cash[asset] < loan_to_receive_after_commission:
+        if 1.8 * self.cash_from_short[asset] < loan_to_receive_after_commission:
             print('\n-----\nMARGIN CALL\n-----\n')
+            # raise RuntimeError('MARGIN CALL')
+            self.history_margin_calls[self.step_count] = 1
             return True
         return False
 
@@ -258,18 +263,17 @@ class StockEnv:
         :return: observation, reward, terminated, truncated, info
         """
         self.reset_check()
-        observation, reward, terminated, truncated, info = {}, 0, False, False, {}
+        observation, reward, terminated, info = {}, 0, False, {}
 
         # execute actions
-        for action_tuple in actions:
-            asset, action = action_tuple
+        for asset, action in actions:  # 2 tuples in actions
             current_price = self.history_assets[asset][self.step_count]
             executed = self.exec_action(asset, action, current_price)  # reward in dollars
             self.update_history_after_action(asset, current_price)
             self.commission_value = 0
             if executed:
                 self.history_orders[self.step_count] += 1
-                self.history_actions[asset][self.step_count] = action
+            self.history_actions[asset][self.step_count].append(action)
 
         # get reward
         portfolio_worth = self.history_portfolio_worth[self.step_count]
@@ -286,7 +290,7 @@ class StockEnv:
         # gather info
         info = {}
 
-        return observation, portfolio_worth, terminated, truncated, info
+        return observation, portfolio_worth, terminated, info
 
     def update_history_after_action(self, asset, current_price):
         self.history_portion_of_asset[self.step_count] = self.portion_of_asset[asset]
@@ -296,8 +300,8 @@ class StockEnv:
             h_holdings_worth = self.portion_of_asset[asset] * current_price
         elif self.portion_of_asset[asset] < 0:  # short
             loan_to_receive_before_commission = abs(self.portion_of_asset[asset]) * current_price
-            revenue_to_receive_before_commission = self.short_cash[asset] - loan_to_receive_before_commission
-            h_holdings_worth = self.short_cash[asset] + revenue_to_receive_before_commission
+            revenue_to_receive_before_commission = self.cash_from_short[asset] - loan_to_receive_before_commission
+            h_holdings_worth = self.cash_from_short[asset] + revenue_to_receive_before_commission
         else:  # portion_of_asset is 0
             h_holdings_worth = 0
         self.history_portion_of_asset_worth[self.step_count] = h_holdings_worth

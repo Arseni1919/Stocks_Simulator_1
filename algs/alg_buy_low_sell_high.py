@@ -59,13 +59,16 @@ class BuyLowSellHighAlg(MetaAlg):
         last_action_asset, last_action_value = action[-1]
         self.history_actions[last_action_asset][step_count] = last_action_value
 
+    def update_parameters(self):
+        pass
+
 
 def main():
     episodes = 1
     w1, w2 = 10, 20
     # env = SinStockEnv(risk_rate=1)
     # env = AlpacaEnv(list_of_assets=stocks_names_list[:3])
-    env = KirillEnv(list_of_assets=stocks_names_list)
+    env = StockEnv(list_of_assets=stocks_names_list)
     alg = BuyLowSellHighAlg(env=env, to_plot=True, params={'w1': w1, 'w2': w2})
     observation, info = env.reset()
     alg.reset()
@@ -77,7 +80,7 @@ def main():
             alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
             observation = next_observation
 
-            if step % 200 == 0 or step == env.max_steps - 1:
+            if step % 10 == 0 or step == env.max_steps - 1:
                 # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})
                 alg.render(info={'episode': episode, 'step': step, 'w1': w1, 'w2': w2})
 

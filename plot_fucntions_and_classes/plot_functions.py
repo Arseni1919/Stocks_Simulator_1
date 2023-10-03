@@ -14,10 +14,10 @@ def plot_asset_and_actions(ax, info):
     main_asset = info['main_asset']
 
     ax.plot(history_asset[main_asset][:step_count], c='lightblue')
-    buy_steps = np.where(history_actions[main_asset][:step_count] == 1)
-    ax.scatter(buy_steps, history_asset[main_asset][buy_steps], c='green', marker='^', label='long order')
-    sell_steps = np.where(history_actions[main_asset][:step_count] == -1)
-    ax.scatter(sell_steps, history_asset[main_asset][sell_steps], c='red', marker='v', label='short order')
+    # buy_steps = np.where(history_actions[main_asset][:step_count] == 1)
+    # ax.scatter(buy_steps, history_asset[main_asset][buy_steps], c='green', marker='^', label='long order')
+    # sell_steps = np.where(history_actions[main_asset][:step_count] == -1)
+    # ax.scatter(sell_steps, history_asset[main_asset][sell_steps], c='red', marker='v', label='short order')
 
     if 'w1' in info:
         ts = pd.Series(history_asset[main_asset][0:step_count])

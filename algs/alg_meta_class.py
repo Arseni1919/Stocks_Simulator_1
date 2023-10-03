@@ -34,7 +34,7 @@ class MetaAlg(ABC):
         self.history_assets = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         self.history_volume = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         # agents data
-        self.history_actions = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
+        self.history_actions = {asset: [[] for _ in range(self.max_steps)] for asset in self.list_of_assets}
         self.history_cash = np.zeros((self.max_steps,))
         self.history_holdings = np.zeros((self.max_steps,))
         self.history_holdings_worth = np.zeros((self.max_steps,))
@@ -51,7 +51,7 @@ class MetaAlg(ABC):
         pass
 
     @abstractmethod
-    def update_after_action(self, observation, action, reward, next_observation, terminated, truncated):
+    def update_after_action(self, observation, action, reward, next_observation, terminated):
         pass
 
     @abstractmethod

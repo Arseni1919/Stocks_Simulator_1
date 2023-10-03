@@ -9,6 +9,7 @@ from plot_fucntions_and_classes.plot_functions import *
 # CHECK!!!!!!!!!!!!!!!!!
 # CHECK 2
 # CHECK 3
+# CHECK 4
 class OpportunityAlg(MetaAlg):
 
     def __init__(self, env, to_plot=False, params=None):

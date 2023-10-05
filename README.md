@@ -63,7 +63,7 @@ def main():
             print(f'\r{episode=} | {step=}', end='')
             action = alg.return_action(observation)
             next_observation, portfolio_worth, terminated, truncated, info = env.step(action)
-            alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
+            alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated)
             observation = next_observation
             if step % 200 == 0 or step == env.max_steps - 1:
                 # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})

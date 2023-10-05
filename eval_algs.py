@@ -45,8 +45,7 @@ class AlgsTester:
 
                     action = alg.return_action(observation)
                     next_observation, portfolio_worth, terminated, truncated, info = self.env.step(action)
-                    alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated,
-                                            truncated)
+                    alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated)
                     observation = next_observation
 
                     # update stats

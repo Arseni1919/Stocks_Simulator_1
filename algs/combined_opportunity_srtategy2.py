@@ -8,6 +8,7 @@ from environments.alpaca_env import AlpacaEnv
 from environments.stock_env_class import StockEnv
 from algs.alg_meta_class import MetaAlg
 from plot_fucntions_and_classes.plot_functions import *
+from indicator_functions import *
 
 # kiril
 
@@ -70,11 +71,11 @@ class OpportunityAlg(MetaAlg):
         return rsi
 
     @staticmethod
-    def calc_slope(window_df, multiplier=1000):
-        result = (window_df.iloc[len(window_df) - 1] - window_df.iloc[0]) / len(window_df)
+    def calc_slope(df, multiplier=1000):
+        result = (df.iloc[len(df) - 1] - df.iloc[0]) / len(df)
         return result * multiplier
 
-    def return_action(self, observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit):
+    def return_action(self, observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit, params):
         action = [0, 0]
         step_count, in_hand = self.update_history(observation)
         ts = pd.Series(self.history_assets[self.main_asset][0:step_count])
@@ -85,7 +86,8 @@ class OpportunityAlg(MetaAlg):
                 rsi = self.calc_rsi(ts, rsi_period)
                 rsi = rsi[step_count - 1]    # the last available RSI number
 
-            slope_day_start = ts.rolling(400, min_periods=rsi_period).apply(self.calc_slope).fillna(0)
+            slope_day_start = ts.rolling(400, min_periods=rsi_period).apply(
+                                        self.calc_slope()).fillna(0)
 
             # long entry:
             if (slope_day_start[:slope_start] >= -slope_angle).all():
@@ -123,7 +125,7 @@ class OpportunityAlg(MetaAlg):
 
         return [(self.main_asset, action[0]), (self.main_asset, action[1])]
 
-    def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
+    def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated):
         step_count = observation['step_count']
         last_action_asset, last_action_value = action[-1]
         self.history_actions[last_action_asset][step_count] = last_action_value
@@ -163,9 +165,9 @@ def plot_volume_is_high(ax, info, mm_days):
 
 
 def main():
-    seed = 444
-    random.seed(seed)
-    np.random.seed(seed)
+
+    indicator_params = {}
+    indicator_params['slope_multiplier'] = 1000
 
     episodes = 1
     rsi_period = 7
@@ -181,9 +183,9 @@ def main():
     for episode in range(episodes):
         for step in range(env.max_steps):
             print(f'\r{episode} | {step}', end='')
-            action = alg.return_action(observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit)
-            next_observation, portfolio_worth, terminated, truncated, info = env.step(action)
-            alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
+            action = alg.return_action(observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit, indicator_params)
+            next_observation, portfolio_worth, terminated, info = env.step(action)
+            alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated)
             observation = next_observation
 
             if step % 50 == 0 or step == env.max_steps - 1:

@@ -27,10 +27,10 @@ import graphviz
 # from torch.autograd import Variable
 
 # from alpaca.trading.client import TradingClient
-from alpaca.data.historical import StockHistoricalDataClient
-from alpaca.data.requests import StockBarsRequest
-from alpaca.data.timeframe import TimeFrame
-from alpaca.data.live import StockDataStream
+# from alpaca.data.historical import StockHistoricalDataClient
+# from alpaca.data.requests import StockBarsRequest
+# from alpaca.data.timeframe import TimeFrame
+# from alpaca.data.live import StockDataStream
 
 load_dotenv()
 

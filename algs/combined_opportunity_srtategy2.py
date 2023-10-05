@@ -17,10 +17,7 @@ class OpportunityAlg(MetaAlg):
 
     def __init__(self, env, to_plot=False, params=None):
         super().__init__(env, to_plot, params)
-        # init
-        if params is None:
-            self.params = {'w1': 40, 'w2': 20}
-        self.name = f'BLSH-{self.params["w1"]}-{self.params["w2"]}'
+
         self.no_long_count = 0
         self.no_short_count = 0
 
@@ -54,47 +51,53 @@ class OpportunityAlg(MetaAlg):
             # plot_variance(ax[1, 1], info=info)
             plot_orders(self.ax[1, 1], info=info)
             # plot_average(self.ax[1, 2], info=info)
-            plot_volume_is_high(self.ax[1, 2], info=info, mm_days=5)
+            plot_volume_is_high(self.ax[1, 2], info=info)
             # plot_volume(self.ax[1, 2], info=info)
             plt.pause(0.01)
 
-    @staticmethod
-    def calc_rsi(series, rsi_period=14):
-        chg = series.diff(1)
-        gain = chg.mask(chg < 0, 0)
-        loss = chg.mask(chg > 0, 0)
-        avg_gain = gain.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
-        avg_loss = loss.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
-        rs = abs(avg_gain / avg_loss)
-        rsi = 1 - (1 / (1 + rs))
-        rsi[:rsi_period] = 0.5
-        return rsi
+    # @staticmethod
+    # def calc_rsi(series, params):
+    #     rsi_period = params['rsi_period']
+    #     chg = series.diff(1)
+    #     gain = chg.mask(chg < 0, 0)
+    #     loss = chg.mask(chg > 0, 0)
+    #     avg_gain = gain.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
+    #     avg_loss = loss.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
+    #     rs = abs(avg_gain / avg_loss)
+    #     rsi = 1 - (1 / (1 + rs))
+    #     rsi[:rsi_period] = 0.5
+    #     return rsi
 
     @staticmethod
     def calc_slope(df, multiplier=1000):
         result = (df.iloc[len(df) - 1] - df.iloc[0]) / len(df)
         return result * multiplier
 
-    def return_action(self, observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit, params):
+    def return_action(self, observation, params):
+        rsi_period = params['rsi_period']
+        slope_start = params['slope_start']
+        slope_angle = params['slope_angle']
+        rsi_trigger = params['rsi_trigger']
+        exit_after = params['exit']
+
         action = [0, 0]
         step_count, in_hand = self.update_history(observation)
-        ts = pd.Series(self.history_assets[self.main_asset][0:step_count])
+        ts = pd.Series(self.history_assets[self.main_asset][:step_count])
 
         # opportunity strategy
         if step_count > rsi_period:
-            if step_count > rsi_period:
-                rsi = self.calc_rsi(ts, rsi_period)
-                rsi = rsi[step_count - 1]    # the last available RSI number
+            # rsi = self.calc_rsi(ts, params)
+            rsi = calc_rsi(ts, params)
+            rsi = rsi[step_count-1]    # the last available RSI number
 
-            slope_day_start = ts.rolling(400, min_periods=rsi_period).apply(
-                                        self.calc_slope()).fillna(0)
+            slope_day_start = ts.rolling(400, min_periods=rsi_period).apply(self.calc_slope).fillna(0)
 
             # long entry:
             if (slope_day_start[:slope_start] >= -slope_angle).all():
                 if rsi <= rsi_trigger:
                     self.no_long_count = 0
                     if in_hand == 0:
-                        action[0] = 1
+                        action[1] = 1
                     if in_hand == -1:
                         action[0] = 1
                         action[1] = 1
@@ -106,7 +109,7 @@ class OpportunityAlg(MetaAlg):
                 if rsi >= (1-rsi_trigger):
                     self.no_short_count = 0
                     if in_hand == 0:
-                        action[0] = -1
+                        action[1] = -1
                     if in_hand == 1:
                         action[0] = -1
                         action[1] = -1
@@ -115,13 +118,13 @@ class OpportunityAlg(MetaAlg):
 
             # long exit
             if in_hand == 1:
-                if self.no_long_count >= exit or rsi >= (1-rsi_trigger) or step_count == 388:
-                    action[0] = -1
+                if self.no_long_count >= exit_after or rsi >= (1-rsi_trigger) or step_count == 388:
+                    action[1] = -1
 
             # short exit
             if in_hand == -1:
-                if self.no_short_count >= exit or rsi <= rsi_trigger or step_count == 388:
-                    action[0] = 1
+                if self.no_short_count >= exit_after or rsi <= rsi_trigger or step_count == 388:
+                    action[1] = 1
 
         return [(self.main_asset, action[0]), (self.main_asset, action[1])]
 
@@ -133,12 +136,13 @@ class OpportunityAlg(MetaAlg):
     def update_parameters(self):
         pass
 
-def plot_volume_is_high(ax, info, mm_days):
+def plot_volume_is_high(ax, info):
     ax.cla()
     step_count = info['step_count']
     history_volume = info['history_volume']
     max_steps = info['max_steps']
     main_asset = info['main_asset']
+    mm_days = info['mm_days']
 
     step_count = step_count if step_count >= 0 else max_steps - 1
 
@@ -168,13 +172,16 @@ def main():
 
     indicator_params = {}
     indicator_params['slope_multiplier'] = 1000
+    indicator_params['rsi_period'] = 14
+    indicator_params['mm_days'] = 5
+
+    indicator_params['rsi_period'] = 7
+    indicator_params['rsi_trigger'] = 0.3
+    indicator_params['slope_start'] = 60
+    indicator_params['slope_angle'] = 0.05
+    indicator_params['exit'] = 20           # exit_after_consecutive
 
     episodes = 1
-    rsi_period = 7
-    rsi_trigger = 0.3
-    slope_start = 60
-    slope_angle = 0.05
-    exit = 20  # exit_after_consecutive
     env = StockEnv(list_of_assets=stocks_names_list, to_shuffle=False)
     alg = OpportunityAlg(env=env, to_plot=True)
     observation, info = env.reset()
@@ -182,15 +189,16 @@ def main():
 
     for episode in range(episodes):
         for step in range(env.max_steps):
-            print(f'\r{episode} | {step}', end='')
-            action = alg.return_action(observation, rsi_period, rsi_trigger, slope_start, slope_angle, exit, indicator_params)
-            next_observation, portfolio_worth, terminated, info = env.step(action)
+            print(f'\r{episode=} | {step=}', end='')
+            action = alg.return_action(observation, indicator_params)
+            next_observation, portfolio_worth, terminated, _ = env.step(action)
             alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated)
             observation = next_observation
 
             if step % 50 == 0 or step == env.max_steps - 1:
                 # env.render(info={'episode': episode, 'step': step, 'alg_name': alg.name})
-                alg.render(info={'episode': episode, 'step': step, 'w1': 10, 'w2': 20})
+                alg.render(info={'episode': episode, 'step': step, 'w1': 10, 'w2': 20,
+                                 'mm_days': indicator_params['mm_days']})
 
     plt.show()
 

@@ -88,11 +88,28 @@ def main():
 - [GitHub (self) | gather game](https://github.com/Arseni1919/Gather_Game/blob/main/impl_env_gather.py)
 - [GitHub (self) | NN with stocks](https://github.com/Arseni1919/Implementing_NN_Stocks)
 - [GitHub (Kirill) | backtester](https://github.com/kirilgravis/NTC/blob/main/Analysys/Three_days.ipynb)
-- [mpl | markers](https://matplotlib.org/stable/api/markers_api.html)
+- [GitHub | NTC](https://github.com/kirilgravis/NTC)
 
+- [mpl | markers](https://matplotlib.org/stable/api/markers_api.html)
+- [blog | How to build a real-time live dashboard with Streamlit](https://blog.streamlit.io/how-to-build-a-real-time-live-dashboard-with-streamlit/)
+- [YouTube | How to Deploy Your App to Streamlit Community Cloud](https://www.youtube.com/watch?v=HKoOBiAaHGg&t=44s&ab_channel=Streamlit)
+- [google | finance](https://www.google.com/finance/quote/.INX:INDEXSP)
+
+### [Plotly](https://plotly.com/python/)
+
+- [plotly | time series graphs](https://plotly.com/python/time-series/)
+- [plotly | subplots](https://plotly.com/python/subplots/)
+
+### [StreamLit](https://docs.streamlit.io/library/api-reference)
+
+- [st | home](https://share.streamlit.io/)
+- [st | API](https://docs.streamlit.io/library/api-reference)
+- [st | secrets](https://docs.streamlit.io/streamlit-cloud/get-started/deploy-an-app/connect-to-data-sources/secrets-management)
+- [st | session state](https://docs.streamlit.io/library/api-reference/session-state)
+
+### [Alpaca](https://alpaca.markets/docs/market-data/)
+
+- [alpaca | market data API](https://alpaca.markets/docs/market-data/)
 - [alpaca | Trading Account](https://alpaca.markets/docs/api-references/trading-api/account/)
 - [alpaca | get market data](https://alpaca.markets/docs/market-data/getting-started/)
 - [tds | how to use alpaca](https://medium.com/@chris_42047/getting-started-with-the-alpaca-trading-apis-python-tutorial-226f4dca5d8a)
-
-- [streamlit](https://docs.streamlit.io/)
-- [blog | How to build a real-time live dashboard with Streamlit](https://blog.streamlit.io/how-to-build-a-real-time-live-dashboard-with-streamlit/)

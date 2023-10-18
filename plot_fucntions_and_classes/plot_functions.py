@@ -10,6 +10,7 @@ def subplot_actions(ax, info):
     history_asset = info['history_assets']
     history_actions = info['history_actions']
     main_asset = info['main_asset']
+    main_actions = history_actions[main_asset][:step_count]
     l_buy, l_double_buy, l_sell, l_double_sell = [], [], [], []
     for i, pair_of_actions in enumerate(history_actions[main_asset][:step_count]):
         if pair_of_actions == [0, 1] or pair_of_actions == [1, 0]:

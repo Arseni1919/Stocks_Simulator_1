@@ -176,7 +176,7 @@ class StockEnv:
     def sample_action(self, asset=None):
         # return np.random.choice(self.action_space, p=[0.9, 0.05, 0.05])
         if asset:
-            return [(asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05]))]
+            return [(asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])), (asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05]))]
         return [(i_asset, np.random.choice(self.action_space, p=[0.05, 0.9, 0.05])) for i_asset in self.list_of_assets]
 
     def enter_short(self, asset, current_price):

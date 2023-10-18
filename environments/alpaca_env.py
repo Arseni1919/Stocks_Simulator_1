@@ -40,7 +40,7 @@ class AlpacaEnv(StockEnv):
                 print(f'{day} | {asset} | lengths: {len(prices)} - {len(volumes)}')
             print('---------------------')
 
-    def inner_reset(self):
+    def sample_new_day(self):
         """
         Sample a day
         """

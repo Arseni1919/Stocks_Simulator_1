@@ -5,19 +5,36 @@ def set_xlims(ax, min_steps, max_steps):
     ax.set_xlim([min_steps, max_steps])
 
 
+def subplot_actions(ax, info):
+    step_count = info['step_count']
+    history_asset = info['history_assets']
+    history_actions = info['history_actions']
+    main_asset = info['main_asset']
+    l_buy, l_double_buy, l_sell, l_double_sell = [], [], [], []
+    for i, pair_of_actions in enumerate(history_actions[main_asset][:step_count]):
+        if pair_of_actions == [0, 1] or pair_of_actions == [1, 0]:
+            l_buy.append(i)
+        if pair_of_actions == [1, 1]:
+            l_double_buy.append(i)
+        if pair_of_actions == [-1, 0] or pair_of_actions == [0, -1]:
+            l_sell.append(i)
+        if pair_of_actions == [-1, -1]:
+            l_double_sell.append(i)
+    ax.scatter(l_buy, history_asset[main_asset][l_buy], c='green', marker='^', label='long order')
+    ax.scatter(l_double_buy, history_asset[main_asset][l_double_buy], c='green', marker='*', label='switch to buy')
+    ax.scatter(l_sell, history_asset[main_asset][l_sell], c='red', marker='v', label='short order')
+    ax.scatter(l_double_sell, history_asset[main_asset][l_double_sell], c='red', marker='X', label='switch to sell')
+
+
 def plot_asset_and_actions(ax, info):
     ax.cla()
     step_count = info['step_count']
     history_asset = info['history_assets']
-    history_actions = info['history_actions']
     max_steps = info['max_steps']
     main_asset = info['main_asset']
 
     ax.plot(history_asset[main_asset][:step_count], c='lightblue')
-    # buy_steps = np.where(history_actions[main_asset][:step_count] == 1)
-    # ax.scatter(buy_steps, history_asset[main_asset][buy_steps], c='green', marker='^', label='long order')
-    # sell_steps = np.where(history_actions[main_asset][:step_count] == -1)
-    # ax.scatter(sell_steps, history_asset[main_asset][sell_steps], c='red', marker='v', label='short order')
+    subplot_actions(ax, info)
 
     if 'w1' in info:
         ts = pd.Series(history_asset[main_asset][0:step_count])

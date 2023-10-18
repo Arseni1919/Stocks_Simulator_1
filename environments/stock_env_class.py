@@ -90,21 +90,29 @@ class StockEnv:
         self.days_counter = 0
         self.n_days = len(self.all_daytimes_shuffled)
 
-    def reset_check(self):
-        if self.step_count == -1:
-            raise RuntimeError('Do a resset first!')
+    def sample_new_day(self, params=None):
+        """
+        Sample a day
+        """
+        # sample a random day (without repeats)
+        if self.days_counter >= len(self.all_daytimes_shuffled):
+            self.days_counter = 0
+            print('[INFO] finished round on data')
+        if params and 'episode' in params:
+            self.days_counter = params['episode'] % self.n_days
+        next_day = self.all_daytimes_shuffled[self.days_counter]
+        self.days_counter += 1
+        self.curr_day_data = self.days_dict[next_day]
+        # print(f'\n{next_day=}\n')
+        # first_asset = self.list_of_assets[0]
+        # self.max_steps = len(self.curr_day_data[first_asset]['price'])
 
     def reset(self, params=None):
         """
         :return: observation, info
         """
         self.max_steps = 390  # minutes
-        self.inner_reset(params)
-        # global data
-        # self.history_assets = np.zeros((self.max_steps,))
-        # self.history_volume = np.zeros((self.max_steps,))
-        self.history_assets = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
-        self.history_volume = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
+        self.sample_new_day(params)
         # instant data
         self.step_count = 0
         self.in_hand = {asset: 0 for asset in self.list_of_assets}  # -1 -> short, 0 -> nothing, 1 -> long
@@ -112,6 +120,9 @@ class StockEnv:
         self.cash_from_short = {asset: 0 for asset in self.list_of_assets}
         self.portion_of_asset = {asset: 0 for asset in self.list_of_assets}
         self.commission_value = 0
+        # global data
+        self.history_assets = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
+        self.history_volume = {asset: np.zeros((self.max_steps,)) for asset in self.list_of_assets}
         # agent data
         self.history_actions = {asset: [[] for _ in range(self.max_steps)] for asset in self.list_of_assets}
         self.history_cash = np.zeros((self.max_steps,))
@@ -128,22 +139,9 @@ class StockEnv:
         info = {}
         return observation, info
 
-    def inner_reset(self, params=None):
-        """
-        Sample a day
-        """
-        # sample a random day (without repeats)
-        if self.days_counter >= len(self.all_daytimes_shuffled):
-            self.days_counter = 0
-            print('[INFO] finished round on data')
-        if params and 'episode' in params:
-            self.days_counter = params['episode'] % self.n_days
-        next_day = self.all_daytimes_shuffled[self.days_counter]
-        self.days_counter += 1
-        self.curr_day_data = self.days_dict[next_day]
-        # print(f'\n{next_day=}\n')
-        # first_asset = self.list_of_assets[0]
-        # self.max_steps = len(self.curr_day_data[first_asset]['price'])
+    def reset_check(self):
+        if self.step_count == -1:
+            raise RuntimeError('Do a resset first!')
 
     def generate_next_assets(self):
         step_count = self.step_count
@@ -290,6 +288,7 @@ class StockEnv:
         # gather info
         info = {}
 
+        # returns: observation, reward, done, info
         return observation, portfolio_worth, terminated, info
 
     def update_history_after_action(self, asset, current_price):
@@ -309,8 +308,20 @@ class StockEnv:
             print('here')
         self.history_portfolio_worth[self.step_count] = self.cash + h_holdings_worth
 
-    def close(self):
-        pass
+    def export_history(self):
+        export_dict = {
+            'history_assets': self.history_assets,
+            'history_volume': self.history_volume,
+            'history_actions': self.history_actions,
+            'history_cash': self.history_cash,
+            'history_portion_of_asset': self.history_portion_of_asset,
+            'history_portion_of_asset_worth': self.history_portion_of_asset_worth,
+            'history_orders': self.history_orders,
+            'history_portfolio_worth': self.history_portfolio_worth,
+            'history_commission_value': self.history_commission_value,
+            'history_margin_calls': self.history_margin_calls,
+        }
+        return export_dict
 
     def render(self, info=None):
         if self.to_plot:

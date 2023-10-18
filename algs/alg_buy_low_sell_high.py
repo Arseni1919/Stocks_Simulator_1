@@ -54,7 +54,7 @@ class BuyLowSellHighAlg(MetaAlg):
 
         return [(self.main_asset, action[0]), (self.main_asset, action[1])]
 
-    def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated, truncated):
+    def update_after_action(self, observation, action, portfolio_worth, next_observation, terminated):
         step_count = observation['step_count']
         last_action_asset, last_action_value = action[-1]
         self.history_actions[last_action_asset][step_count] = last_action_value
@@ -76,8 +76,8 @@ def main():
         for step in range(env.max_steps):
             print(f'\r{episode=} | {step=}', end='')
             action = alg.return_action(observation)
-            next_observation, portfolio_worth, terminated, truncated, info = env.step(action)
-            alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated, truncated)
+            next_observation, portfolio_worth, terminated, info = env.step(action)
+            alg.update_after_action(observation, action, portfolio_worth, next_observation, terminated)
             observation = next_observation
 
             if step % 10 == 0 or step == env.max_steps - 1:

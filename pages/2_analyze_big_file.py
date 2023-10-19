@@ -9,12 +9,13 @@ from functions import *
 data = load_big_json()
 dates_list = list(data.keys())
 dates_list.sort(key=lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"))
+st.write(dates_list)
 st.write(f'### We have dates from {dates_list[:3]}... until ...{dates_list[-3:]}.')
 st.write(f'### We have {len(dates_list)} days')
 
 "Lets take one date:"
 
-first_date = dates_list[0]
+first_date = dates_list[10]
 st.code(first_date)
 # st.json(data[first_date]['SPY'])
 
@@ -24,7 +25,7 @@ for asset in assets_names_list:
     before_df['assets'].append(asset)
     before_df['infos'].append(assets_names_dict[asset]['info'])
     before_df['prices'].append(data[first_date][asset]['price'])
-    before_df['volumes'].append(data[first_date][asset]['volume'])
+    before_df['volumes'].append(data[first_date][asset]['volume'][1:])
 
 daily_df = pd.DataFrame(before_df)
 

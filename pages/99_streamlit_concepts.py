@@ -1,18 +1,14 @@
-from indicator_functions import *
-from st_plot_functions import *
-from st_functions import *
-from functions import *
+import matplotlib.pyplot as plt
+from datetime import datetime
+import plotly.figure_factory as ff
+import plotly.express as px
+import streamlit as st
+import pandas as pd
+import numpy as np
+import graphviz
+import random
+import time
 
-st.set_page_config(layout="wide")
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
 st.write('# Text')
 st.divider()
 
@@ -46,46 +42,36 @@ st.divider()  # 👈 Draws a horizontal rule
 st.divider()  # 👈 Draws a horizontal rule
 st.divider()  # 👈 Draws a horizontal rule
 
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
 st.write('# Nice Tables')
 st.divider()
 
 df = pd.DataFrame(np.random.randn(50, 20), columns=("col %d" % i for i in range(20)))
 st.dataframe(df)  # Same as st.write(df)
 
-with st.echo():
-    df = pd.DataFrame(
-        {
-            "name": ["Roadmap", "Extras", "Issues"],
-            "url": ["https://roadmap.streamlit.app", "https://extras.streamlit.app", "https://issues.streamlit.app"],
-            "stars": [random.randint(0, 1000) for _ in range(3)],
-            "views_history": [[random.randint(0, 5000) for _ in range(30)] for _ in range(3)],
-        }
-    )
-    st.dataframe(
-        df,
-        column_config={
-            "name": "App name",
-            "stars": st.column_config.NumberColumn(
-                "Github Stars",
-                help="Number of stars on GitHub",
-                format="%d ⭐",
-            ),
-            "url": st.column_config.LinkColumn("App URL"),
-            "views_history": st.column_config.LineChartColumn(
-                "Views (past 30 days)", y_min=0, y_max=5000
-            ),
-        },
-        hide_index=True,
-    )
+df = pd.DataFrame(
+    {
+        "name": ["Roadmap", "Extras", "Issues"],
+        "url": ["https://roadmap.streamlit.app", "https://extras.streamlit.app", "https://issues.streamlit.app"],
+        "stars": [random.randint(0, 1000) for _ in range(3)],
+        "views_history": [[random.randint(0, 5000) for _ in range(30)] for _ in range(3)],
+    }
+)
+st.dataframe(
+    df,
+    column_config={
+        "name": "App name",
+        "stars": st.column_config.NumberColumn(
+            "Github Stars",
+            help="Number of stars on GitHub",
+            format="%d ⭐",
+        ),
+        "url": st.column_config.LinkColumn("App URL"),
+        "views_history": st.column_config.LineChartColumn(
+            "Views (past 30 days)", y_min=0, y_max=5000
+        ),
+    },
+    hide_index=True,
+)
 
 data_df = pd.DataFrame(
     {
@@ -134,10 +120,10 @@ st.data_editor(
 data_df = pd.DataFrame(
     {
         "appointment": [
-            datetime.datetime(2024, 2, 5, 12, 30),
-            datetime.datetime(2023, 11, 10, 18, 0),
-            datetime.datetime(2024, 3, 11, 20, 10),
-            datetime.datetime(2023, 9, 12, 3, 0),
+            datetime(2024, 2, 5, 12, 30),
+            datetime(2023, 11, 10, 18, 0),
+            datetime(2024, 3, 11, 20, 10),
+            datetime(2023, 9, 12, 3, 0),
         ]
     }
 )
@@ -147,8 +133,8 @@ st.data_editor(
     column_config={
         "appointment": st.column_config.DatetimeColumn(
             "Appointment",
-            min_value=datetime.datetime(2023, 6, 1),
-            max_value=datetime.datetime(2025, 1, 1),
+            min_value=datetime(2023, 6, 1),
+            max_value=datetime(2025, 1, 1),
             format="D MMM YYYY, h:mm a",
             step=60,
         ),
@@ -253,15 +239,6 @@ st.data_editor(
     hide_index=True,
 )
 
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
 st.write('# Metrics')
 st.divider()
 
@@ -362,15 +339,6 @@ st.graphviz_chart('''
     }
 ''')
 
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
 st.write('# Input Widgets')
 st.divider()
 
@@ -411,7 +379,7 @@ if on:
     st.write('Feature activated!')
 
 genre = st.radio(
-    "What's your favorite movie g_assets_2",
+    "What's your favorite movie genre",
     [":rainbow[Comedy]", "***Drama***", "Documentary :movie_camera:"],
     captions=["Laugh out loud.", "Get the popcorn.", "Never stop learning."])
 if genre == ':rainbow[Comedy]':
@@ -420,7 +388,7 @@ else:
     st.write("You didn\'t select comedy.")
 
 genre = st.radio(
-    "What's your favorite movie g_assets_2",
+    "What's your favorite movie genre",
     [":rainbow[Comedy]", "***Drama***", "Documentary :movie_camera:"],
     index=None,
 )
@@ -440,24 +408,22 @@ st.write('You selected:', options)
 age = st.slider('How old are you?', 0, 130, 25)
 st.write("I'm ", age, 'years old')
 
-with st.echo():
-    values = st.slider(
-        'Select a range of values',
-        0.0, 100.0, (25.0, 75.0))
-    st.write('Values:', values)
+values = st.slider(
+    'Select a range of values',
+    0.0, 100.0, (25.0, 75.0))
+st.write('Values:', values)
 
 start_time = st.slider(
     "When do you start?",
-    value=datetime.datetime(2020, 1, 1, 9, 30),
+    value=datetime(2020, 1, 1, 9, 30),
     format="MM/DD/YY - hh:mm")
 st.write("Start time:", start_time)
 
-with st.echo():
-    start_color, end_color = st.select_slider(
-        'Select a range of color wavelength',
-        options=['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'],
-        value=('red', 'blue'))
-    st.write('You selected wavelengths between', start_color, 'and', end_color)
+start_color, end_color = st.select_slider(
+    'Select a range of color wavelength',
+    options=['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'],
+    value=('red', 'blue'))
+st.write('You selected wavelengths between', start_color, 'and', end_color)
 
 title = st.text_input('Movie title', 'Life of Brian')
 st.write('The current movie title is', title)
@@ -475,7 +441,7 @@ txt = st.text_area(
 )
 st.write(f'You wrote {len(txt)} characters.')
 
-d = st.date_input("When's your birthday", datetime.datetime(2019, 7, 6))
+d = st.date_input("When's your birthday", datetime(2019, 7, 6))
 st.write('Your birthday is:', d)
 
 uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True)
@@ -565,15 +531,7 @@ with st.container():
    st.bar_chart(np.random.randn(50, 3))
 st.write("This is outside the container")
 
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
+
 st.write('# Display progress and status')
 st.divider()
 
@@ -617,34 +575,24 @@ st.success('This is a success message!', icon="✅")
 e = RuntimeError('This is an exception of type RuntimeError')
 st.exception(e)
 
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
 st.write('# Control flow')
 st.divider()
 
 name = st.text_input('Name')
 if not name:
   st.warning('Please input a name.')
-  # st.stop()
+  st.stop()
 st.success('Thank you for inputting a name.')
 
-with st.echo():
-    with st.form("my_form"):
-       st.write("Inside the form")
-       slider_val = st.slider("Form slider")
-       checkbox_val = st.checkbox("Form checkbox")
-       # Every form must have a submit button.
-       submitted = st.form_submit_button("Submit")
-       if submitted:
-           st.write("slider", slider_val, "checkbox", checkbox_val)
-    st.write("Outside the form")
+with st.form("my_form"):
+   st.write("Inside the form")
+   slider_val = st.slider("Form slider")
+   checkbox_val = st.checkbox("Form checkbox")
+   # Every form must have a submit button.
+   submitted = st.form_submit_button("Submit")
+   if submitted:
+       st.write("slider", slider_val, "checkbox", checkbox_val)
+st.write("Outside the form")
 
 st.write('# Session State')
 st.divider()
@@ -663,15 +611,7 @@ if 'key' not in st.session_state:
 if 'key' not in st.session_state:
     st.session_state.key = 'value'
 
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
+
 st.write('# How to get the secrets')
 st.write(f'{st.secrets.db_username} {st.secrets.db_password}')
 
@@ -683,37 +623,6 @@ with st.echo():
     def my_slow_function(arg1, arg2):
         # Do something really slow in here!
         return 'the_output'
-
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-
-st.write("# Magic commands")
-st.divider()
-
-'''
-# This is the document title
-
-This is some _markdown_.
-'''
-
-df = pd.DataFrame({'col1': [1,2,3]})
-df  # 👈 Draw the dataframe
-
-x = 10
-'x', x  # 👈 Draw the string 'x' and then the value of x
-
-arr = np.random.normal(1, 1, size=100)
-fig, ax = plt.subplots(figsize=(20, 5))
-ax.hist(arr, bins=20)
-
-fig  # 👈 Draw a Matplotlib chart
 
 
 

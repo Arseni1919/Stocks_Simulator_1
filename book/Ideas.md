@@ -11,7 +11,7 @@ Always brings some information.
 
 # Cleaning the data
 
-## On prices
+## About prices
 
 - percentage change on OLHC (first price (adj price) each day - 1, then percentage change) 
 - instead of close take adjusted
@@ -21,7 +21,7 @@ new_percentage_return = current_price / first_price - 1  # may be negative
 new_percentage_return = current_price / first_price  # always positive
 ```
 
-## On Volume
+## About Volume
 
 - moving median 3 (to remove one-time spikes)
 - moving median 5 (to remove spikes)
@@ -29,7 +29,7 @@ new_percentage_return = current_price / first_price  # always positive
 
 # Indicators
 
-- slope day start (tngns alpha) alpha is more than -.05 -> then day is positive 
+- slope day start (tngns alpha) alpha is more than -.05 -> then the day is positive 
 - slope x minutes
 - RSI
 - MACD - sucks - depends too much on the price

@@ -1,7 +1,7 @@
 from algs.alg_buy_low_sell_high import BuyLowSellHighAlg
 from algs.momentum_last_hour import MomentumLastHour
 from environments.sin_stock_env import SinStockEnv
-from environments.kirill_env import KirillEnv
+from environments.stock_env_class import StockEnv
 from plot_fucntions_and_classes.plot_functions import *
 from globals import *
 
@@ -76,7 +76,7 @@ class AlgsTester:
 def main():
     episodes = 100
     # env = SinStockEnv()
-    env = KirillEnv(list_of_assets=stocks_names_list, data_dir='data/data.json', to_shuffle=True)
+    env = StockEnv(list_of_assets=stocks_names_list, data_dir='data/data.json', to_shuffle=True)
     # alg = BuyLowSellHighAlg(env=env)
     window_sizes = [10, 20, 30, 40, 50, 60, 70]
     algorithms = [

@@ -359,7 +359,7 @@ class StockEnv:
 
 def main():
     episodes = 1
-    env = StockEnv(to_plot=True, list_of_assets=stocks_names_list, to_load=True)
+    env = StockEnv(to_plot=True, list_of_assets=assets_names_list, to_load=True)
     observation, info = env.reset()
     main_asset = 'SPY'
     for episode in range(episodes):

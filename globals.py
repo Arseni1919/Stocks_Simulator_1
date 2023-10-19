@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from abc import ABC, abstractmethod
 import os
 import datetime
+from datetime import timezone
 import json
 
 # import pymongo
@@ -28,29 +29,58 @@ from alpaca.data.live import StockDataStream
 
 load_dotenv()
 
-stocks_names_list = [
+assets_names_list = [
     'SPY',
-    'TLT',
+    'IVV',
+    'VOO',
+    'QQQ',
+    'DIA',
+    'VIXY',
     'AAPL',
     'AMZN',
-    'DIA',
-    'FB',
-    'GLD',
     'GOOG',
     'GOOGL',
-    'GOVT',
-    'IAU',
-    'IEF',
-    'IGSB',
-    'IVV',
-    'LQD',
     'MSFT',
+    'FB',
     'NFLX',
-    'QQQ',
-    'SHY',
     'TSLA',
-    'VCIT',
     'VCSH',
-    'VIXY',
-    'VOO',
+    'IGSB',
+    'VCIT',
+    'LQD',
+    'SHY',
+    'IEF',
+    'GOVT',
+    'TLT',
+    'GLD',
+    'IAU',
 ]
+
+assets_names_dict = {
+    'SPY': {'info': 'ETF on Stocks'},
+    'IVV': {'info': 'ETF on Stocks'},
+    'VOO': {'info': 'ETF on Stocks'},
+    'QQQ': {'info': 'ETF on Stocks'},
+    'DIA': {'info': 'ETF on Stocks'},
+    'VIXY': {'info': 'S&P500 Volatility Index'},
+    'AAPL': {'info': 'Stock'},
+    'MSFT': {'info': 'Stock'},
+    'AMZN': {'info': 'Stock'},
+    'GOOG': {'info': 'Stock'},
+    'GOOGL': {'info': 'Stock'},
+    'FB': {'info': 'Stock'},
+    'NFLX': {'info': 'Stock'},
+    'TSLA': {'info': 'Stock'},
+    'VCSH': {'info': '(1-3) ETF of Corp Bonds'},
+    'IGSB': {'info': '(1-5) ETF of Corp Bonds'},
+    'VCIT': {'info': '(~6) ETF of Corp Bonds'},
+    'LQD': {'info': '(~9) ETF of Corp Bonds'},
+    'SHY': {'info': '(1-3) ETF of Gov Bonds'},
+    'IEF': {'info': '(7-10) ETF of Gov Bonds'},
+    'GOVT': {'info': '(~6) ETF of Gov Bonds'},
+    'TLT': {'info': '(~20) ETF of Gov Bonds'},
+    'GLD': {'info': 'Commodities'},
+    'IAU': {'info': 'Commodities'},
+}
+
+indicators_height = 200

@@ -1,5 +1,3 @@
-import numpy as np
+from globals import *
 
-l = np.array([22, 33, 44])
-
-print(l / 3 - 1)
+print([assets_names_dict[item]['info'] for item in assets_names_list])

@@ -67,8 +67,8 @@ def main():
     episodes = 1
     w1, w2 = 10, 20
     # env = SinStockEnv(risk_rate=1)
-    # env = AlpacaEnv(list_of_assets=stocks_names_list[:3])
-    env = StockEnv(list_of_assets=stocks_names_list)
+    # env = AlpacaEnv(list_of_assets=assets_names_list[:3])
+    env = StockEnv(list_of_assets=assets_names_list)
     alg = BuyLowSellHighAlg(env=env, to_plot=True, params={'w1': w1, 'w2': w2})
     observation, info = env.reset()
     alg.reset()

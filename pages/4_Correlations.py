@@ -10,7 +10,7 @@ from globals import *
 # ------------------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------------------ #
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def get_sample_data():
     name = 'data_for_Correl3.pickle'
     with open(name, 'rb') as f:
@@ -23,7 +23,7 @@ def get_sample_data():
         return curr_data
 
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def get_columns_and_np_data():
     big_corr_list = []
     curr_columns = list(data[0].columns)

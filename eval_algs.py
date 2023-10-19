@@ -76,7 +76,7 @@ class AlgsTester:
 def main():
     episodes = 100
     # env = SinStockEnv()
-    env = StockEnv(list_of_assets=stocks_names_list, data_dir='data/data.json', to_shuffle=True)
+    env = StockEnv(list_of_assets=assets_names_list, data_dir='data/data.json', to_shuffle=True)
     # alg = BuyLowSellHighAlg(env=env)
     window_sizes = [10, 20, 30, 40, 50, 60, 70]
     algorithms = [

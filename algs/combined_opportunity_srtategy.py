@@ -137,7 +137,7 @@ def main():
     slope_start = 60
     slope_angle = 0.05
     exit = 20         # exit_after_consecutive
-    env = StockEnv(list_of_assets=stocks_names_list, to_shuffle=False)
+    env = StockEnv(list_of_assets=assets_names_list, to_shuffle=False)
     alg = OpportunityAlg(env=env, to_plot=True)
 
     for i_update in range(10):

@@ -75,7 +75,7 @@ class AlpacaEnv(StockEnv):
 
 def main():
     episodes = 1
-    env = AlpacaEnv(to_plot=True, list_of_assets=stocks_names_list[:3])
+    env = AlpacaEnv(to_plot=True, list_of_assets=assets_names_list[:3])
     observation, info = env.reset()
     main_asset = 'SPY'
     for episode in range(episodes):

@@ -48,8 +48,8 @@ def main():
     episodes = 1
     w1, w2 = 10, 20
     # env = SinStockEnv(risk_rate=1)
-    # env = AlpacaEnv(list_of_assets=stocks_names_list[:3])
-    env = KirillEnv(list_of_assets=stocks_names_list)
+    # env = AlpacaEnv(list_of_assets=assets_names_list[:3])
+    env = KirillEnv(list_of_assets=assets_names_list)
     alg = MomentumLastHour(env=env, to_plot=True)
     observation, info = env.reset()
     alg.reset()

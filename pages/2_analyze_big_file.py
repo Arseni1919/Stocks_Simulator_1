@@ -10,12 +10,16 @@ data = load_big_json()
 dates_list = list(data.keys())
 dates_list.sort(key=lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"))
 st.write(dates_list)
-st.write(f'### We have dates from {dates_list[:3]}... until ...{dates_list[-3:]}.')
-st.write(f'### We have {len(dates_list)} days')
+st.write(f'#### We have dates from {dates_list[:3]}... until ...{dates_list[-3:]}.')
+st.write(f'### There are {len(dates_list)} days.')
 
-"Lets take one date:"
+"#### Lets take one date:"
 
-first_date = dates_list[10]
+first_date = st.select_slider(
+    "Date:",
+    options=dates_list,
+    value=dates_list[0])
+# first_date = dates_list[10]
 st.code(first_date)
 # st.json(data[first_date]['SPY'])
 

@@ -1,12 +1,10 @@
-# 
+# Ideas
 
 ## Spikes in assets' volume
-
 In ETFs the spikes in volume happens after the information arrived.
 In stocks - spikes volume are good - it can be informative.
 
 ## Spike in price
-
 Always brings some information.
 
 # Cleaning the data
@@ -14,7 +12,7 @@ Always brings some information.
 ## About prices
 
 - percentage change on OLHC (first price (adj price) each day - 1, then percentage change) 
-- instead of close take adjusted
+- instead of 'close' take 'adjusted'
 
 ```
 new_percentage_return = current_price / first_price - 1  # may be negative

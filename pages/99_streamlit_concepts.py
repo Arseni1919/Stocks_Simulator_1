@@ -446,10 +446,11 @@ st.write('You selected:', options)
 age = st.slider('How old are you?', 0, 130, 25)
 st.write("I'm ", age, 'years old')
 
-values = st.slider(
-    'Select a range of values',
-    0.0, 100.0, (25.0, 75.0))
-st.write('Values:', values)
+with st.echo():
+    values = st.slider(
+        'Select a range of values',
+        0.0, 100.0, (25.0, 75.0))
+    st.write('Values:', values)
 
 start_time = st.slider(
     "When do you start?",
@@ -457,11 +458,12 @@ start_time = st.slider(
     format="MM/DD/YY - hh:mm")
 st.write("Start time:", start_time)
 
-start_color, end_color = st.select_slider(
-    'Select a range of color wavelength',
-    options=['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'],
-    value=('red', 'blue'))
-st.write('You selected wavelengths between', start_color, 'and', end_color)
+with st.echo():
+    start_color, end_color = st.select_slider(
+        'Select a range of color wavelength',
+        options=['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'violet'],
+        value=('red', 'blue'))
+    st.write('You selected wavelengths between', start_color, 'and', end_color)
 
 title = st.text_input('Movie title', 'Life of Brian')
 st.write('The current movie title is', title)

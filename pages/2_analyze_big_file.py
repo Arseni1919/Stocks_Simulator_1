@@ -91,7 +91,39 @@ What do we see:
 - Then -> bonds with gold
 '''
 
+'## SHY'
 
+'''
+Shy seems to be the most stable with the mean of :red[-0.0005%] and std of **0.0318%**.
+Let's see the graph of price and volume for the whole period.
+'''
 
+full_shy_price_list, full_shy_volume_list = [], []
+for date in dates_list:
+    full_shy_price_list.extend(data[date]['SHY']['price'])
+    full_shy_volume_list.extend(data[date]['SHY']['volume'])
+
+start_i, end_i = st.select_slider(
+    'Select a range of time-steps:',
+    options=range(len(full_shy_price_list)),
+    value=(0, len(full_shy_price_list)-1))
+x_list = list(range(start_i, end_i))
+fig, ax = plt.subplots(2, 1, figsize=(20, 10))
+ax[0].plot(x_list, full_shy_price_list[start_i:end_i])
+ax[1].plot(x_list, full_shy_volume_list[start_i:end_i])
+st.pyplot(fig)
+
+'''
+Now let's look at the volume with the moving median:
+'''
+df = pd.DataFrame({
+    # "full_shy_price_list": full_shy_price_list,
+    "full_shy_volume_list": full_shy_volume_list,
+})
+
+window = st.slider('Select a window:', 1, 50, 3)
+# Calculate the rolling median for window = 1
+roll_median = df.rolling(window=window).median()
+st.line_chart(roll_median)
 
 

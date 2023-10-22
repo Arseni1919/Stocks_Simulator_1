@@ -5,6 +5,7 @@ import os
 import datetime
 from datetime import timezone
 import json
+import itertools
 
 # import pymongo
 import pandas as pd

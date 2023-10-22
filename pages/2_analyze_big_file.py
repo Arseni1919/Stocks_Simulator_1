@@ -211,7 +211,6 @@ with st.expander(":orange[Click to open/close...]", expanded=True):
         for date in dates_list:
             spy_day_prices = np.array(data[date]['SPY']['price'])  # len = 390
             percent_change = np.abs((spy_day_prices[0] - spy_day_prices[-1]) / spy_day_prices[0])
-            print(percent_change)
             percent_change += 1
             if on_100_com:
                 start_cash = 100

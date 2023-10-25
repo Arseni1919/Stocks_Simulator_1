@@ -1,13 +1,7 @@
-import matplotlib.pyplot as plt
-from datetime import datetime
-import plotly.figure_factory as ff
-import plotly.express as px
-import streamlit as st
-import pandas as pd
-import numpy as np
-import graphviz
-import random
-import time
+from indicator_functions import *
+from st_plot_functions import *
+from st_functions import *
+from functions import *
 
 st.set_page_config(layout="wide")
 # ------------------------------------------------------------------------------------------------------------ #
@@ -140,10 +134,10 @@ st.data_editor(
 data_df = pd.DataFrame(
     {
         "appointment": [
-            datetime(2024, 2, 5, 12, 30),
-            datetime(2023, 11, 10, 18, 0),
-            datetime(2024, 3, 11, 20, 10),
-            datetime(2023, 9, 12, 3, 0),
+            datetime.datetime(2024, 2, 5, 12, 30),
+            datetime.datetime(2023, 11, 10, 18, 0),
+            datetime.datetime(2024, 3, 11, 20, 10),
+            datetime.datetime(2023, 9, 12, 3, 0),
         ]
     }
 )
@@ -153,8 +147,8 @@ st.data_editor(
     column_config={
         "appointment": st.column_config.DatetimeColumn(
             "Appointment",
-            min_value=datetime(2023, 6, 1),
-            max_value=datetime(2025, 1, 1),
+            min_value=datetime.datetime(2023, 6, 1),
+            max_value=datetime.datetime(2025, 1, 1),
             format="D MMM YYYY, h:mm a",
             step=60,
         ),
@@ -454,7 +448,7 @@ with st.echo():
 
 start_time = st.slider(
     "When do you start?",
-    value=datetime(2020, 1, 1, 9, 30),
+    value=datetime.datetime(2020, 1, 1, 9, 30),
     format="MM/DD/YY - hh:mm")
 st.write("Start time:", start_time)
 
@@ -481,7 +475,7 @@ txt = st.text_area(
 )
 st.write(f'You wrote {len(txt)} characters.')
 
-d = st.date_input("When's your birthday", datetime(2019, 7, 6))
+d = st.date_input("When's your birthday", datetime.datetime(2019, 7, 6))
 st.write('Your birthday is:', d)
 
 uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True)
@@ -638,18 +632,19 @@ st.divider()
 name = st.text_input('Name')
 if not name:
   st.warning('Please input a name.')
-  st.stop()
+  # st.stop()
 st.success('Thank you for inputting a name.')
 
-with st.form("my_form"):
-   st.write("Inside the form")
-   slider_val = st.slider("Form slider")
-   checkbox_val = st.checkbox("Form checkbox")
-   # Every form must have a submit button.
-   submitted = st.form_submit_button("Submit")
-   if submitted:
-       st.write("slider", slider_val, "checkbox", checkbox_val)
-st.write("Outside the form")
+with st.echo():
+    with st.form("my_form"):
+       st.write("Inside the form")
+       slider_val = st.slider("Form slider")
+       checkbox_val = st.checkbox("Form checkbox")
+       # Every form must have a submit button.
+       submitted = st.form_submit_button("Submit")
+       if submitted:
+           st.write("slider", slider_val, "checkbox", checkbox_val)
+    st.write("Outside the form")
 
 st.write('# Session State')
 st.divider()

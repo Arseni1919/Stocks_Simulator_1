@@ -1,6 +1,8 @@
 import pandas as pd
 
 from indicator_functions import *
+from st_plot_functions import *
+from st_functions import *
 from functions import *
 
 st.set_page_config(layout="wide")
@@ -44,13 +46,44 @@ for asset in assets_names_list:
 
 daily_df = pd.DataFrame(before_df)
 
-with st.expander(":orange[Big Table]", expanded=True):
+with st.expander(":orange[Big Table]", expanded=False):
     st.dataframe(daily_df, column_config={
         'assets': 'assets',
         'infos': 'infos',
         'prices': st.column_config.LineChartColumn('prices'),
         'volumes': st.column_config.LineChartColumn('volumes'),
     }, hide_index=True, use_container_width=True, height=880)
+
+
+with st.expander(":orange[Total Volume]", expanded=False):
+    s_date, f_date = st.select_slider(
+        "Date:",
+        options=dates_list,
+        value=(dates_list[0], dates_list[-1]))
+    total_volume_list = []
+    total_volume_daily_list = []
+    for date in dates_list[dates_list.index(s_date):dates_list.index(f_date)]:
+        curr_total_volume = 0
+        curr_total_volume_daily = np.zeros(390)
+        for asset in assets_names_list:
+            curr_total_volume += np.sum(data[date][asset]['volume'])
+            curr_total_volume_daily += data[date][asset]['volume']
+        total_volume_list.append(curr_total_volume)
+        total_volume_daily_list.extend(curr_total_volume_daily)
+
+    fig, ax = plt.subplots(2, 1, figsize=(20, 6))
+    ax[0].plot(total_volume_list, label='Volume')
+    ax[0].legend()
+    ax[1].plot(total_volume_daily_list, label='Volume Minutes')
+    ax[1].legend()
+    st.pyplot(fig)
+    st.line_chart(total_volume_daily_list)
+    # st.dataframe(daily_df, column_config={
+    #     'assets': 'assets',
+    #     'infos': 'infos',
+    #     'prices': st.column_config.LineChartColumn('prices'),
+    #     'volumes': st.column_config.LineChartColumn('volumes'),
+    # }, hide_index=True, use_container_width=True, height=880)
 
 # -------------------------------------------------------------------------------------------------------------------- #
 '---'
@@ -158,13 +191,13 @@ with st.expander(":orange[Click to open/close...]", expanded=False):
 
 '## The Optimal Strategy'
 
-with st.expander(":orange[Click to open/close...]", expanded=True):
+with st.expander(":orange[Click to open/close...]", expanded=False):
     '''
     Let's look at the best possible strategy, that we can make given that we know the future. \n
     The setting:
     - We are doing the daily bids. That means, we start and finish at the same day always.
     - We start each day with the 100$.
-    - We are allowed to make actions each minute, including swapping from buy to call and vise-versa.
+    - We are allowed to make actions each minute, including swapping from long to short and vise-versa.
     - We examine two cases: with commissions and without them. 
     - We use the SPY stock.
     '''

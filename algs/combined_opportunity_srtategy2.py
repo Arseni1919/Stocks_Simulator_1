@@ -18,6 +18,7 @@ class OpportunityAlg(MetaAlg):
     def __init__(self, env, to_plot=False, params=None):
         super().__init__(env, to_plot, params)
 
+        # variables for the strategy
         self.no_long_count = 0
         self.no_short_count = 0
 
@@ -54,19 +55,6 @@ class OpportunityAlg(MetaAlg):
             plot_volume_is_high(self.ax[1, 2], info=info)
             # plot_volume(self.ax[1, 2], info=info)
             plt.pause(0.01)
-
-    # @staticmethod
-    # def calc_rsi(series, params):
-    #     rsi_period = params['rsi_period']
-    #     chg = series.diff(1)
-    #     gain = chg.mask(chg < 0, 0)
-    #     loss = chg.mask(chg > 0, 0)
-    #     avg_gain = gain.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
-    #     avg_loss = loss.ewm(com=rsi_period - 1, min_periods=rsi_period).mean()
-    #     rs = abs(avg_gain / avg_loss)
-    #     rsi = 1 - (1 / (1 + rs))
-    #     rsi[:rsi_period] = 0.5
-    #     return rsi
 
     @staticmethod
     def calc_slope(df, multiplier=1000):
@@ -168,6 +156,23 @@ def plot_volume_is_high(ax, info):
     # print(volumes['High_Volume_MM'].describe())
 
 
+def plot_rsi(ax, info):
+    ax.cla()
+    step_count = info['step_count']
+    max_steps = info['max_steps']
+    history_asset = info['history_assets']
+    main_asset = info['main_asset']
+
+    step_count = step_count if step_count >= 0 else max_steps - 1
+
+    ts = pd.Series(history_asset[main_asset][:step_count])
+    rsi = calc_rsi(ts, params)
+
+    ax.plot(rsi, c='brown', alpha=0.7)
+    set_xlims(ax, 0, max_steps)
+    ax.set_title('In Hand')
+
+
 def main():
 
     indicator_params = {}
@@ -183,7 +188,7 @@ def main():
 
     episodes = 1
     env = StockEnv(list_of_assets=stocks_names_list, to_shuffle=False)
-    alg = OpportunityAlg(env=env, to_plot=True)
+    alg = OpportunityAlg(env=env, to_plot=False)
     observation, info = env.reset()
     alg.reset()
 

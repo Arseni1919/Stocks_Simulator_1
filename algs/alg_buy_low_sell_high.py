@@ -13,6 +13,8 @@ class BuyLowSellHighAlg(MetaAlg):
         # init
         if params is None:
             self.params = {'w1': 40, 'w2': 20}
+        else:
+            self.params = params
         self.name = f'BLSH-{self.params["w1"]}-{self.params["w2"]}'
 
     @staticmethod

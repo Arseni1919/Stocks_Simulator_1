@@ -127,3 +127,8 @@ def strat_simple_follow_stock(**kwargs):
                 fig = px.line(plot_dict, x='Dates', y='Cumulative Profit')
                 st.plotly_chart(fig, use_container_width=True)
 
+        st.write(f"### :red[Questions:]")
+        st.write("""
+        - Why no stock can benefit from the strategy? what stops it?
+        - How the market knows to through the simple strategy?
+        """)

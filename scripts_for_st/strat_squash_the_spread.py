@@ -70,4 +70,9 @@ def strat_squash_the_spread(**kwargs):
             fig = px.line(plot_dict, x='Dates', y=['spread_prices'])
             st.plotly_chart(fig, use_container_width=True)
 
+        st.write(f"### :red[Questions:]")
+        st.write("""
+        - How to calc spread exactly?
+        """)
+
 

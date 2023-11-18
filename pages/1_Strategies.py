@@ -3,6 +3,7 @@ from st_plot_functions import *
 from st_functions import *
 from functions import *
 from scripts_for_st.strat_simple_follow_stock import strat_simple_follow_stock
+from scripts_for_st.strat_squash_the_spread import strat_squash_the_spread
 
 # init
 st.set_page_config(layout="wide")
@@ -22,3 +23,4 @@ g_dict = {
 """
 
 strat_simple_follow_stock(data=data, dates_list=dates_list, asset='TSLA')
+strat_squash_the_spread(data=data, dates_list=dates_list, asset_1='AMZN', asset_2='AAPL')

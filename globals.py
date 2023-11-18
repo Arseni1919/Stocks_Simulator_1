@@ -11,6 +11,7 @@ import time
 # import pymongo
 import pandas as pd
 import numpy as np
+import scipy as sp
 import streamlit as st
 import matplotlib.pyplot as plt
 import plotly.express as px

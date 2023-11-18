@@ -28,7 +28,6 @@ def get_time_period_start(time_period):
     return start_datetime
 
 
-@st.cache_data
 def historical_data(stock, time_period):
     API_KEY = st.secrets.alpaca_api_key
     SECRET_KEY = st.secrets.alpaca_secret_key

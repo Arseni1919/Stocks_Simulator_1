@@ -1,8 +1,103 @@
+import numpy as np
+import pandas as pd
+
 from globals import *
 
 """
 All the functions that define plots for the streamlit.
 """
+
+
+def plot_asset_volumes(**kwargs):
+    data = kwargs['data']
+    selected_dates = kwargs['selected_dates']
+    asset = kwargs['asset']
+    if 'ignore_first_minute' in kwargs:
+        ignore_first_minute = kwargs['ignore_first_minute']
+    else:
+        ignore_first_minute = False
+
+    asset_prices = []
+    asset_volumes = []
+
+    for date in selected_dates:
+        if ignore_first_minute:
+            volumes = np.sum(data[date][asset]['volume'][1:])
+        else:
+            volumes = np.sum(data[date][asset]['volume'])
+        asset_volumes.append(volumes)
+
+    plot_dict = {
+        f'{asset}_volume': asset_volumes,
+        f'dates': selected_dates
+    }
+    plot_df = pd.DataFrame.from_dict(plot_dict)
+    fig2 = px.line(plot_df, x="dates", y=f'{asset}_volume')
+    st.plotly_chart(fig2, use_container_width=True)
+
+
+def plot_asset_prices(**kwargs):
+    data = kwargs['data']
+    selected_dates = kwargs['selected_dates']
+    asset = kwargs['asset']
+    if 'ignore_first_minute' in kwargs:
+        ignore_first_minute = kwargs['ignore_first_minute']
+    else:
+        ignore_first_minute = False
+
+    asset_prices = []
+    asset_volumes = []
+
+    for date in selected_dates:
+        if ignore_first_minute:
+            prices = np.sum(data[date][asset]['price'][1:])
+        else:
+            prices = np.sum(data[date][asset]['price'])
+        asset_prices.append(prices)
+
+    plot_dict = {
+        f'{asset}_price': asset_prices,
+        f'dates': selected_dates
+    }
+    plot_df = pd.DataFrame.from_dict(plot_dict)
+    fig1 = px.line(plot_df, x="dates", y=f'{asset}_price')
+    st.plotly_chart(fig1, use_container_width=True)
+
+
+def plot_asset(**kwargs):
+    data = kwargs['data']
+    selected_dates = kwargs['selected_dates']
+    asset = kwargs['asset']
+    if 'ignore_first_minute' in kwargs:
+        ignore_first_minute = kwargs['ignore_first_minute']
+    else:
+        ignore_first_minute = False
+
+    asset_prices = []
+    asset_volumes = []
+
+    for date in selected_dates:
+        if ignore_first_minute:
+            prices = np.sum(data[date][asset]['price'][1:])
+            volumes = np.sum(data[date][asset]['volume'][1:])
+        else:
+            prices = np.sum(data[date][asset]['price'])
+            volumes = np.sum(data[date][asset]['volume'])
+        asset_prices.append(prices)
+        asset_volumes.append(volumes)
+
+
+    plot_dict = {
+        f'{asset}_volume': asset_volumes,
+        f'{asset}_price': asset_prices,
+        f'dates': selected_dates
+    }
+    plot_df = pd.DataFrame.from_dict(plot_dict)
+    fig1 = px.line(plot_df, x="dates", y=f'{asset}_price')
+    st.plotly_chart(fig1, use_container_width=True)
+    fig2 = px.line(plot_df, x="dates", y=f'{asset}_volume')
+    st.plotly_chart(fig2, use_container_width=True)
+
 
 
 def plot_price_and_volume(info):

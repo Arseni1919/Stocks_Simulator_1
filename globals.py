@@ -39,7 +39,9 @@ assets_names_list = [
     'VOO',
     'QQQ',
     'DIA',
+
     'VIXY',
+
     'AAPL',
     'AMZN',
     'GOOG',
@@ -48,14 +50,17 @@ assets_names_list = [
     'FB',
     'NFLX',
     'TSLA',
+
     'VCSH',
     'IGSB',
     'VCIT',
     'LQD',
+
     'SHY',
     'IEF',
     'GOVT',
     'TLT',
+
     'GLD',
     'IAU',
 ]

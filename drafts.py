@@ -1,6 +1,9 @@
-def plot(x, y, **kwargs):
-    print(kwargs['c'])
-x=5
-print(f'{x=}')
+import numpy as np
 
-plot(y=1, x=2)
+from globals import *
+
+a = np.array([3,40])
+b = np.array([2,2])
+
+print(np.dot(a, b))
+print(np.multiply(a, b))

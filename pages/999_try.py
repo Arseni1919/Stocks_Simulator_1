@@ -6,7 +6,8 @@ import time
 # fig, ax = plt.subplots()
 plt.rcParams["figure.figsize"] = (20, 3)
 
-max_data = 100
+# max_data = 100
+max_data = 10
 y_data = []
 x_data = []
 
@@ -16,7 +17,6 @@ the_plot_2 = st.pyplot(plt)
 
 def animate(i):  # update the y values (every 1000ms)
     plt.cla()
-    plt.x
     plt.title(f'Iteration {i}')
     plt.plot(x_data, y_data)
     the_plot.pyplot(plt)

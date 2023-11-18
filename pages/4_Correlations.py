@@ -109,7 +109,7 @@ st.write("""
 # ------------------------------------ #
 
 st.write('## Correlation progress through days:')
-
+#
 columns, corr_np = get_columns_and_np_data()
 
 

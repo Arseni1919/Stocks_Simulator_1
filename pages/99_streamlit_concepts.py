@@ -411,7 +411,7 @@ if on:
     st.write('Feature activated!')
 
 genre = st.radio(
-    "What's your favorite movie genre",
+    "What's your favorite movie g_assets_2",
     [":rainbow[Comedy]", "***Drama***", "Documentary :movie_camera:"],
     captions=["Laugh out loud.", "Get the popcorn.", "Never stop learning."])
 if genre == ':rainbow[Comedy]':
@@ -420,7 +420,7 @@ else:
     st.write("You didn\'t select comedy.")
 
 genre = st.radio(
-    "What's your favorite movie genre",
+    "What's your favorite movie g_assets_2",
     [":rainbow[Comedy]", "***Drama***", "Documentary :movie_camera:"],
     index=None,
 )

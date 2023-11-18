@@ -1,11 +1,7 @@
 from globals import *
 
 
-@st.cache_data
-def load_big_json():
-    f = open('data/data.json')
-    data = json.load(f)
-    return data
+
 
 
 def get_time_period_start(time_period):

@@ -5,7 +5,10 @@ from st_plot_functions import *
 from st_functions import *
 from functions import *
 
+# init
 st.set_page_config(layout="wide")
+data = load_big_json()
+dates_list = load_dates_list(data)
 
 "# Analyze Big JSON File With All The Data"
 
@@ -15,9 +18,6 @@ st.set_page_config(layout="wide")
 
 "## All data:"
 
-data = load_big_json()
-dates_list = list(data.keys())
-dates_list.sort(key=lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"))
 # st.write(dates_list)
 st.write(f'#### We have dates from {dates_list[:2]}... until ...{dates_list[-2:]}.')
 st.write(f'### There are {len(dates_list)} days.')
@@ -66,8 +66,10 @@ with st.expander(":orange[Total Volume]", expanded=False):
         curr_total_volume = 0
         curr_total_volume_daily = np.zeros(390)
         for asset in assets_names_list:
-            curr_total_volume += np.sum(data[date][asset]['volume'])
-            curr_total_volume_daily += data[date][asset]['volume']
+            # day_volumes = data[date][asset]['volume'] * data[date][asset]['price']
+            dv_value = data[date][asset]['volume'] 
+            curr_total_volume += np.sum(dv_value)
+            curr_total_volume_daily += dv_value
         total_volume_list.append(curr_total_volume)
         total_volume_daily_list.extend(curr_total_volume_daily)
 

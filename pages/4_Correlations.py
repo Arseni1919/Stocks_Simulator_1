@@ -2,41 +2,6 @@ from indicator_functions import *
 from st_plot_functions import *
 from st_functions import *
 from functions import *
-import pickle
-
-
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# FUNCTIONS
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-@st.cache_data
-def get_sample_data():
-    name = 'data_for_Correl3.pickle'
-    with open(name, 'rb') as f:
-        curr_data = pickle.load(f)
-        for day_data_df in curr_data:
-            new_names_dict = {}
-            for name in day_data_df.columns:
-                new_names_dict[name] = name[4:]
-            day_data_df.rename(columns=new_names_dict, inplace=True)
-        return curr_data
-
-
-@st.cache_data
-def get_columns_and_np_data():
-    big_corr_list = []
-    curr_columns = list(data[0].columns)
-    for day_data_df in data:
-        big_corr_list.append(day_data_df.corr().to_numpy())
-    curr_corr_np = np.array(big_corr_list)
-    return curr_columns, curr_corr_np
-
-
-def select_all_func(curr_options, curr_columns):
-    curr_options = curr_columns
 
 
 # ------------------------------------------------------------------------------------------------------------ #
@@ -46,14 +11,6 @@ def select_all_func(curr_options, curr_columns):
 # ------------------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------------------ #
-
-# ------------------------------------ #
-# ------------------------------------ #
-# ------------------------------------ #
-# Sidebar
-# ------------------------------------ #
-# ------------------------------------ #
-# ------------------------------------ #
 
 
 # ------------------------------------ #
@@ -68,79 +25,68 @@ st.write(f'# Correlation Analysis')
 
 st.write('## Data')
 
-data = get_sample_data()
+data = load_big_json()
+dates_list = list(data.keys())
+dates_list.sort(key=lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"))
+g_dict = {
+    'Custom': ['SPY'],
+    '# ***': assets_names_list,
+    'STOCKS': ['AAPL', 'AMZN', 'GOOG', 'GOOGL', 'MSFT', 'FB', 'NFLX', 'TSLA'],
+    'GOV BONDS': ['SHY', 'IEF', 'GOVT', 'TLT'],
+    'CORPORATE BONDS': ['VCSH', 'IGSB', 'VCIT', 'LQD'],
+}
+
 if len(data) > 0:
     st.success(f'Data is loaded.')
 
-st.write("""
-# _____________________________________ 
-""")
 # ------------------------------------ #
 # ------------------------------------ #
 # ------------------------------------ #
 
-st.write(f'## Day correlation matrix:')
+'''
+## Day correlation matrix:
+'''
 
-color = st.select_slider('Select a day:', options=[i for i in range(len(data))])
-# st.write(data[0].columns)
-fig = px.imshow(data[color].corr(), text_auto=True, zmin=-1, zmax=1)
-st.plotly_chart(fig)
-
-st.write(f"""
-## Analysis
-- SHY - short Gov. bonds
-- TLT - long gov. bonds
-- QQQ - ETF stock
-- VIXY - short options on SPY (volume is important)
-- LQD - long corp. bonds
-- GOVT - treasury medium
-- IEF - 7-10 years treasury
-- IAU - gold
-
-$\\alpha$
-""")
-
-
-st.write("""
-# _____________________________________ 
-""")
-# ------------------------------------ #
-# ------------------------------------ #
-# ------------------------------------ #
-
-st.write('## Correlation progress through days:')
-#
-columns, corr_np = get_columns_and_np_data()
-
-
-if st.button('Refresh'):
-    st.experimental_rerun()
-to_show = st.slider('How many to choose:', 0, len(columns), 7)
-options = st.multiselect('Stocks/Bonds:', columns, columns[:to_show])
-
-if len(options) > 0:
-    fig = make_subplots(rows=len(options), cols=len(options))
-    counter = 0
-    for i_row, option_row in enumerate(options):
-        for i_col, option_col in enumerate(options):
-            corr_data = corr_np[:, columns.index(option_row), columns.index(option_col)]
-            fig.add_trace(
-                go.Scatter(x=list(range(len(corr_data))), y=corr_data, name=f'{option_row}-{option_col}'),
-                row=i_row + 1, col=i_col + 1)
-            counter += 1
-    # fig.update_layout(yaxis_range=[-4, 4])
-    # fig.update(layout_yaxis_range=[-4, 4])
-    fig.update_yaxes(range=[-1, 1])
-    fig.update_layout(height=800, width=900, title_text="Side By Side Subplots")
-    st.plotly_chart(fig)
+on = st.toggle('Run through days', value=False)
+if on:
+    g_assets_1 = st.radio("Group of assets 1:", ['Custom', "# ***", "STOCKS", "GOV BONDS", "CORPORATE BONDS"], index=1,
+                          horizontal=True)
+    g_list_1 = g_dict[g_assets_1]
+    with st.form('set_parameters_1'):
+        rate = st.slider('Rate:', 1, 10, 9, 1)
+        selected_assets = st.multiselect('Select assets:', assets_names_list, g_list_1)
+        s_date, f_date = st.select_slider(
+            "Select range of dates:",
+            options=dates_list,
+            value=(dates_list[0], dates_list[-1]))
+        submitted = st.form_submit_button("Run")
+        my_bar = st.progress(0, text='start')
+    if submitted:
+        fig = px.line({'a': [1]})
+        plotly_obj = st.plotly_chart(fig)
+        selected_dates = dates_list[dates_list.index(s_date):dates_list.index(f_date)]
+        for date_i, date in enumerate(selected_dates):
+            data_for_corr = get_data_for_corr(data, date, selected_assets)
+            fig = px.imshow(data_for_corr.corr(), text_auto=True, zmin=-1, zmax=1)
+            plotly_obj.plotly_chart(fig)
+            # time.sleep(0.001)
+            my_bar.progress((date_i + 1) / len(selected_dates), text=f'{date=}')
+            time.sleep(1 - rate / 10)
+else:
+    selected_date = st.select_slider("Date:", options=dates_list, value=dates_list[0])
+    g_assets_1 = st.radio("Group of assets 1:", ['Custom', "# ***", "STOCKS", "GOV BONDS", "CORPORATE BONDS"], index=1, horizontal=True)
+    g_list_1 = g_dict[g_assets_1]
+    selected_assets = st.multiselect('Select assets:', assets_names_list, g_list_1)
+    fig = px.line({'a': [1]})
+    plotly_obj = st.plotly_chart(fig)
+    data_for_corr = get_data_for_corr(data, selected_date, selected_assets)
+    fig = px.imshow(data_for_corr.corr(), text_auto=True, zmin=-1, zmax=1)
+    plotly_obj.plotly_chart(fig)
 
 # ------------------------------------ #
 # ------------------------------------ #
 # ------------------------------------ #
-# Indicators
-# ------------------------------------ #
-# ------------------------------------ #
-# ------------------------------------ #
+
 
 
 # ------------------------------------------------------------------------------------------------------------ #
@@ -151,7 +97,3 @@ if len(options) > 0:
 # ------------------------------------------------------------------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------------------ #
 
-# fig, ax = plt.subplots()
-# arr = np.random.normal(1, 1, size=100)
-# ax.hist(arr, bins=20)
-# st.pyplot(fig)

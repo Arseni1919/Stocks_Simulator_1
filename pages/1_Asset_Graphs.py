@@ -102,5 +102,5 @@ if ma_bool:
 # fig.add_trace(go.Scatter(x=[1, 2], y=[1, 2], name="(1,2)"), row=1, col=2)
 #
 # fig = px.line(bars_df, x=selected_x_axis, y='close', title='Close Prices')
-# st.plotly_chart(fig, theme=None, use_container_width=True)
+# st.plotly_obj(fig, theme=None, use_container_width=True)
 # fig = px.line(bars_df, x=selected_x_axis, y='volume', title='Volume')

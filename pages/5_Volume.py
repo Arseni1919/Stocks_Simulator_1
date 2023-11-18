@@ -24,7 +24,7 @@ g_dict = {
 
 with st.expander(":orange[Dollar-Volume Metric]", expanded=True):
     g_assets_1 = st.radio("Group of assets 1:", ['Custom', "# ***", "STOCKS", "GOV BONDS", "CORPORATE BONDS"], index=2,
-                        horizontal=True)
+                          horizontal=True)
     g_list_1 = g_dict[g_assets_1]
     with st.form('set_parameters_1'):
         'For the range of days:'
@@ -39,12 +39,9 @@ with st.expander(":orange[Dollar-Volume Metric]", expanded=True):
     plot_dollar_volumes_many_days(dates_list=dates_list, data=data, s_date=s_date, f_date=f_date,
                                   selected_assets=selected_assets)
 
-
     g_assets_2 = st.radio("Group of assets 2:", ['Custom', "# ***", "STOCKS", "GOV BONDS", "CORPORATE BONDS"], index=2,
                           horizontal=True)
     g_list_2 = g_dict[g_assets_2]
-    # st.write("You selected:", g_list)
-
     with st.form('set_parameters_2'):
         'For one specific day:'
         # selected_date = st.date_input("Select the day:", datetime.date(2021, 4, 12))
@@ -55,4 +52,3 @@ with st.expander(":orange[Dollar-Volume Metric]", expanded=True):
     if submitted:
         st.rerun()
     plot_dollar_volumes_one_day(data=data, selected_assets=selected_assets, selected_date=selected_date)
-

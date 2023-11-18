@@ -8,7 +8,8 @@ from functions import *
 # init
 st.set_page_config(layout="wide")
 data = load_big_json()
-dates_list = load_dates_list(data)
+dates_list = list(data.keys())
+dates_list.sort(key=lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"))
 
 "# Analyze Big JSON File With All The Data"
 

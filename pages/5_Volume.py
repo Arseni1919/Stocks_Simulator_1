@@ -20,6 +20,8 @@ g_dict = {
 }
 """
 # Analyze Volumes 
+
+(We do not show the first minute here.)
 """
 
 with st.expander(":orange[Dollar-Volume Metric]", expanded=True):

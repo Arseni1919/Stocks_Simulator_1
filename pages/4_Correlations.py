@@ -28,13 +28,6 @@ st.write('## Data')
 data = load_big_json()
 dates_list = list(data.keys())
 dates_list.sort(key=lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"))
-g_dict = {
-    'Custom': ['SPY'],
-    '# ***': assets_names_list,
-    'STOCKS': ['AAPL', 'AMZN', 'GOOG', 'GOOGL', 'MSFT', 'FB', 'NFLX', 'TSLA'],
-    'GOV BONDS': ['SHY', 'IEF', 'GOVT', 'TLT'],
-    'CORPORATE BONDS': ['VCSH', 'IGSB', 'VCIT', 'LQD'],
-}
 
 if len(data) > 0:
     st.success(f'Data is loaded.')
@@ -51,7 +44,7 @@ tab1, tab2 = st.tabs(["Specific Day", "Run All Days"])
 
 with tab1:
     selected_date = st.select_slider("Date:", options=dates_list, value=dates_list[0])
-    g_assets_2 = st.radio("Group of assets 2:", ['Custom', "# ***", "STOCKS", "GOV BONDS", "CORPORATE BONDS"], index=1, horizontal=True)
+    g_assets_2 = st.radio("Group of assets 2:", list(g_dict.keys()), index=1, horizontal=True)
     g_list_1 = g_dict[g_assets_2]
     selected_assets = st.multiselect('Select assets:', assets_names_list, g_list_1)
     data_for_corr = get_data_for_corr(data, selected_date, selected_assets)
@@ -59,8 +52,7 @@ with tab1:
     st.plotly_chart(fig)
 
 with tab2:
-    g_assets_1 = st.radio("Group of assets 1:", ['Custom', "# ***", "STOCKS", "GOV BONDS", "CORPORATE BONDS"], index=1,
-                          horizontal=True)
+    g_assets_1 = st.radio("Group of assets 1:", list(g_dict.keys()), index=1, horizontal=True)
     g_list_1 = g_dict[g_assets_1]
     with st.form('set_parameters_1'):
         rate = st.slider('Rate:', 1, 10, 9, 1)

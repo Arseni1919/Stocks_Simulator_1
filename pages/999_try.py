@@ -23,8 +23,17 @@ def animate(i):  # update the y values (every 1000ms)
     the_plot_2.pyplot(plt)
 
 
-for i in range(max_data):
-    x_data.append(i)
-    y_data.append(i + np.random.random())
-    animate(i)
-    time.sleep(0.001)
+# for i in range(max_data):
+#     x_data.append(i)
+#     y_data.append(i + np.random.random())
+#     animate(i)
+#     time.sleep(0.001)
+
+from globals import *
+N = 1001
+plot_dict = {'data': np.random.random(N)}
+plot_df = pd.DataFrame.from_dict(plot_dict)
+n_of_datapoints = sum([len(plot_df[column]) for column in plot_df])
+fig = px.line(plot_df)
+st.plotly_chart(fig, use_container_width=True)
+st.line_chart(plot_df)

@@ -99,6 +99,11 @@ def main():
     - full strategy - outputs the decisions of buy/sell/hold and in which proportions to execute the action.
     - backtester on one day - compares strategies on one day.
     - backtester on some timeframe - compares strategies on specified timeframe.
+    
+    # Important Notes
+    
+    - in order to avoid confusion about splits and reverse spits, we want to use the percentage change during the day, 
+    and not the original prices.
 
 
 

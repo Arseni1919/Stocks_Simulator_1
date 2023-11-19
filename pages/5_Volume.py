@@ -11,13 +11,6 @@ st.set_page_config(layout="wide")
 data = load_big_json()
 dates_list = list(data.keys())
 dates_list.sort(key=lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"))
-g_dict = {
-    'Custom': ['SPY'],
-    '# ***': assets_names_list,
-    'STOCKS': ['AAPL', 'AMZN', 'GOOG', 'GOOGL', 'MSFT', 'FB', 'NFLX', 'TSLA'],
-    'GOV BONDS': ['SHY', 'IEF', 'GOVT', 'TLT'],
-    'CORPORATE BONDS': ['VCSH', 'IGSB', 'VCIT', 'LQD'],
-}
 """
 # Analyze Volumes 
 
@@ -25,8 +18,7 @@ g_dict = {
 """
 
 with st.expander(":orange[Dollar-Volume Metric]", expanded=True):
-    g_assets_1 = st.radio("Group of assets 1:", ['Custom', "# ***", "STOCKS", "GOV BONDS", "CORPORATE BONDS"], index=2,
-                          horizontal=True)
+    g_assets_1 = st.radio("Group of assets 1:", list(g_dict.keys()), index=2, horizontal=True)
     g_list_1 = g_dict[g_assets_1]
     with st.form('set_parameters_1'):
         'For the range of days:'
@@ -41,8 +33,7 @@ with st.expander(":orange[Dollar-Volume Metric]", expanded=True):
     plot_dollar_volumes_many_days(dates_list=dates_list, data=data, s_date=s_date, f_date=f_date,
                                   selected_assets=selected_assets)
 
-    g_assets_2 = st.radio("Group of assets 2:", ['Custom', "# ***", "STOCKS", "GOV BONDS", "CORPORATE BONDS"], index=2,
-                          horizontal=True)
+    g_assets_2 = st.radio("Group of assets 2:", list(g_dict.keys()), index=2, horizontal=True)
     g_list_2 = g_dict[g_assets_2]
     with st.form('set_parameters_2'):
         'For one specific day:'

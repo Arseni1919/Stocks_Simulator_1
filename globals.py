@@ -93,4 +93,14 @@ assets_names_dict = {
     'IAU': {'info': 'Commodities'},
 }
 
+g_dict = {
+    'Custom': ['SPY'],
+    '# ***': assets_names_list,
+    'STOCKS': ['AAPL', 'AMZN', 'GOOG', 'GOOGL', 'MSFT', 'FB', 'NFLX', 'TSLA'],
+    'ETFs ON STOCKS': ['SPY', 'IVV', 'VOO', 'QQQ', 'DIA', 'VIXY'],
+    'GOV BONDS': ['SHY', 'IEF', 'GOVT', 'TLT'],
+    'CORPORATE BONDS': ['VCSH', 'IGSB', 'VCIT', 'LQD'],
+    'COMMODITIES': ['GLD', 'IAU'],
+}
+
 indicators_height = 200

@@ -26,46 +26,48 @@ def strat_squash_the_spread(**kwargs):
 
         part1, part2, part3 = st.tabs(["Correlation", "Asset's Graphs", "Spread"])
         with part1:
-            corr_hidden = st.toggle('Hide correlation graph', value=False)
-            if not corr_hidden:
-                st.write(f'## First, checking correlation:')
-                corr_list = []
-                for date in dates_list:
-                    a1_prices = data[date][asset_1]['price']
-                    a2_prices = data[date][asset_2]['price']
-                    correlation, p_value = sp.stats.pearsonr(a1_prices, a2_prices)
-                    corr_list.append(correlation)
-                plot_dict = {'Dates': dates_list, "Pearson's R": corr_list}
-                fig = px.line(plot_dict, x='Dates', y="Pearson's R")
-                st.plotly_chart(fig, use_container_width=True)
+            st.write(f'## First, checking correlation:')
+            corr_list = []
+            for date in dates_list:
+                a1_prices = np.array(data[date][asset_1]['price'])
+                a2_prices = np.array(data[date][asset_2]['price'])
+                a1_prices = np.diff(a1_prices) / a1_prices[:-1]
+                a2_prices = np.diff(a2_prices) / a2_prices[:-1]
+                correlation, p_value = sp.stats.pearsonr(a1_prices, a2_prices)
+                corr_list.append(correlation)
+            plot_dict = {'Dates': dates_list, "Pearson's R": corr_list}
+            fig = px.line(plot_dict, x='Dates', y="Pearson's R")
+            st.plotly_chart(fig, use_container_width=True)
 
         with part2:
-            assets_hidden = st.toggle("Hide asset's graph", value=False)
-            if not assets_hidden:
-                st.write(f"## Then, let's look at the stocks:")
-                plot_dict = {'Dates': dates_list, f'{asset_1}': [], f'{asset_2}': []}
-                for date in dates_list:
-                    a1_prices = np.array(data[date][asset_1]['price']) / data[date][asset_1]['price'][0]
-                    a2_prices = np.array(data[date][asset_2]['price']) / data[date][asset_2]['price'][0]
-                    plot_dict[f'{asset_1}'].append(np.mean(a1_prices))
-                    plot_dict[f'{asset_2}'].append(np.mean(a2_prices))
+            st.write(f"## Then, let's look at the stocks:")
+            plot_dict = {'Dates': dates_list, f'{asset_1}': [], f'{asset_2}': []}
+            for date in dates_list:
+                a1_prices = np.array(data[date][asset_1]['price'])
+                a2_prices = np.array(data[date][asset_2]['price'])
+                a1_prices = np.diff(a1_prices) / a1_prices[:-1]
+                a2_prices = np.diff(a2_prices) / a2_prices[:-1]
+                plot_dict[f'{asset_1}'].append(np.mean(a1_prices))
+                plot_dict[f'{asset_2}'].append(np.mean(a2_prices))
 
-                fig = px.line(plot_dict, x='Dates', y=[f'{asset_1}', f'{asset_2}'])
-                st.plotly_chart(fig, use_container_width=True)
+            fig = px.line(plot_dict, x='Dates', y=[f'{asset_1}', f'{asset_2}'])
+            st.plotly_chart(fig, use_container_width=True)
 
         with part3:
             st.write(f"## Finally, let's examine the spread:")
-            plot_dict = {'Dates': dates_list, 'spread': [], 'spread_prices': []}
+            plot_dict = {'Dates': dates_list, 'spread %': [], 'spread_prices': []}
             for date in dates_list:
-                a1_prices = np.array(data[date][asset_1]['price']) / data[date][asset_1]['price'][0]
-                a2_prices = np.array(data[date][asset_2]['price']) / data[date][asset_2]['price'][0]
-                plot_dict['spread'].append(abs(np.mean(a1_prices) - np.mean(a2_prices)))
+                a1_prices = np.array(data[date][asset_1]['price'])
+                a2_prices = np.array(data[date][asset_2]['price'])
+                a1_prices = np.diff(a1_prices) / a1_prices[:-1]
+                a2_prices = np.diff(a2_prices) / a2_prices[:-1]
+                plot_dict['spread %'].append(abs(np.mean(a1_prices) - np.mean(a2_prices)) * 100)
 
                 a1_prices = np.array(data[date][asset_1]['price'])
                 a2_prices = np.array(data[date][asset_2]['price'])
                 plot_dict['spread_prices'].append(abs(np.mean(a1_prices) - np.mean(a2_prices)))
 
-            fig = px.line(plot_dict, x='Dates', y=['spread'])
+            fig = px.line(plot_dict, x='Dates', y=['spread %'])
             st.plotly_chart(fig, use_container_width=True)
             fig = px.line(plot_dict, x='Dates', y=['spread_prices'])
             st.plotly_chart(fig, use_container_width=True)

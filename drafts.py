@@ -2,8 +2,11 @@ import numpy as np
 
 from globals import *
 
-a = np.array([2,2,1])
-b = np.array([2,2,1])
+a = np.array([1,2,1])
+b = np.array([2,1,2])
+
+result = np.diff(b) / b[:-1]
+print(f'{result=}')
 
 # print(np.dot(a, b))
 # print(np.multiply(a, b))

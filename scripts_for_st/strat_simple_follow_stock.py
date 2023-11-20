@@ -68,7 +68,8 @@ def strat_simple_follow_stock(**kwargs):
     with st.expander(f":orange[Simple Follow Stock]", expanded=False):
         with st.form('set_asset'):
             asset = st.selectbox('Select asset:', assets_names_list, index=assets_names_list.index(asset))
-            commission = st.slider('Select commission:', 0.0, 0.01, 0.001, 0.001, format='%.3f')
+            # commission = st.slider('Select commission:', 0.0, 0.01, 0.001, 0.001, format='%.3f')
+            commission = st.radio('Select commission:', [0, 0.0002, 0.001, 0.003], horizontal=True, index=2)
             margin_call_percentage = st.slider('margin_call_percentage:', 0.0, 1.0, 0.9, 0.1, format='%.1f')
             submitted = st.form_submit_button("Run")
         if submitted:

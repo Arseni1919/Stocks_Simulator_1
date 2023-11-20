@@ -22,7 +22,7 @@ def strat_squash_the_spread(**kwargs):
         """)
         asset_1 = st.selectbox('Select asset 1:', assets_names_list, index=assets_names_list.index(asset_1))
         asset_2 = st.selectbox('Select asset 2:', assets_names_list, index=assets_names_list.index(asset_2))
-        commission = st.slider('Select commission:', 0.0, 0.01, 0.001, 0.001, format='%.3f')
+        commission = st.radio('Select commission:', [0, 0.0002, 0.001, 0.003], horizontal=True, index=2)
 
         part1, part2, part3 = st.tabs(["Correlation", "Asset's Graphs", "Spread"])
         with part1:

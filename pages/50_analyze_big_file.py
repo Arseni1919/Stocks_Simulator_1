@@ -232,7 +232,7 @@ with st.expander(":orange[Click to open/close...]", expanded=False):
     st.line_chart(chart_data, x="dates", y="cumsum")
 
     '### With Commissions'
-    commission = st.slider('Select commission:', 0.0, 0.01, 0.002, 0.001, format='%.3f')  # percentage - out of 1
+    commission = st.radio('Select commission:', [0, 0.0002, 0.001, 0.003], horizontal=True, index=2)  # percentage - out of 1
     f'{commission=}'
     f'''
     If we do action every minute, we will pay from 

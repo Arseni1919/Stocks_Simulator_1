@@ -34,6 +34,6 @@ N = 1001
 plot_dict = {'data': np.random.random(N)}
 plot_df = pd.DataFrame.from_dict(plot_dict)
 n_of_datapoints = sum([len(plot_df[column]) for column in plot_df])
-fig = px.line(plot_df)
+fig = px.line(plot_df, render_mode='svg')
 st.plotly_chart(fig, use_container_width=True)
 st.line_chart(plot_df)

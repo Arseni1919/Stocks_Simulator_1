@@ -130,12 +130,10 @@ def plot_dollar_volumes_many_days(**kwargs):
             n_of_datapoints += 1
 
     plot_df = pd.DataFrame.from_dict(plot_dict)
-    n_of_datapoints = sum([len(plot_df[column]) for column in plot_df])
-    if n_of_datapoints < 1e3:
-        fig = px.line(plot_df, x='Dates', y=selected_assets)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.line_chart(plot_df, x='Dates', y=selected_assets)
+    # n_of_datapoints = sum([len(plot_df[column]) for column in plot_df])
+    fig = px.line(plot_df, x='Dates', y=selected_assets, render_mode='svg')
+    st.plotly_chart(fig, use_container_width=True)
+    # st.line_chart(plot_df, x='Dates', y=selected_assets)
 
 
 def plot_dollar_volumes_one_day(**kwargs):
@@ -151,9 +149,7 @@ def plot_dollar_volumes_one_day(**kwargs):
         plot_dict[asset] = day_dollar_volumes
 
     plot_df = pd.DataFrame.from_dict(plot_dict)
-    n_of_datapoints = sum([len(plot_df[column]) for column in plot_df])
-    if n_of_datapoints < 1e3:
-        fig = px.line(plot_df)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.line_chart(plot_df)
+    fig = px.line(plot_df, render_mode='svg')
+    st.plotly_chart(fig, use_container_width=True)
+    # n_of_datapoints = sum([len(plot_df[column]) for column in plot_df])
+    # st.line_chart(plot_df)

@@ -153,3 +153,18 @@ def plot_dollar_volumes_one_day(**kwargs):
     st.plotly_chart(fig, use_container_width=True)
     # n_of_datapoints = sum([len(plot_df[column]) for column in plot_df])
     # st.line_chart(plot_df)
+
+
+def plot_prices_one_day(**kwargs):
+    data = kwargs['data']
+    selected_assets = kwargs['selected_assets']
+    selected_date = kwargs['selected_date']
+
+    plot_dict = {}
+    for asset in selected_assets:
+        day_prices = data[selected_date][asset]['price'][1:]
+        plot_dict[asset] = day_prices
+
+    plot_df = pd.DataFrame.from_dict(plot_dict)
+    fig = px.line(plot_df, render_mode='svg')
+    st.plotly_chart(fig, use_container_width=True)

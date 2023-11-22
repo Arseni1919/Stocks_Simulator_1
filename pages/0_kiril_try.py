@@ -4,14 +4,29 @@ from st_functions import *
 from functions import *
 
 
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ST
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------ #
+def make_zero_based(day):
+    day = day.pct_change()
+    day.iloc[0] = 0
+    day = (day + 1).cumprod()-1
+    # day += 1
+    day *= 100
+    return day
 
+
+def plot_prices_one_day(**kwargs):
+    data = kwargs['data']
+    selected_assets = kwargs['selected_assets']
+    selected_date = kwargs['selected_date']
+
+    plot_dict = {}
+    for asset in selected_assets:
+        day_prices = data[selected_date][asset]['price'][1:]
+        plot_dict[asset] = day_prices
+
+    plot_df = pd.DataFrame.from_dict(plot_dict)
+    plot_df = make_zero_based(plot_df)
+    fig = px.line(plot_df, render_mode='svg')
+    st.plotly_chart(fig, use_container_width=True)
 
 # ------------------------------------ #
 # ------------------------------------ #
@@ -21,9 +36,9 @@ from functions import *
 # ------------------------------------ #
 # ------------------------------------ #
 
-st.write(f'# Looking at one day')
 
-st.write('## Data')
+st.write(f'# Looking at one day')
+st.write('#### Data')
 
 data = load_big_json()
 dates_list = list(data.keys())

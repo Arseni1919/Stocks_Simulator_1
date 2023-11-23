@@ -25,6 +25,7 @@ def strat_squash_the_spread(**kwargs):
         commission = st.radio('Select commission:', [0, 0.0002, 0.001, 0.003], horizontal=True, index=2)
 
         part1, part2, part3, part4 = st.tabs(["Show Assets", "Correlation", "Asset's Graphs", "Spread"])
+        #
         with part1:
             st.write(f"## First, let's look at the stocks:")
             plot_dict = {'Dates': dates_list, f'{asset_1}': [], f'{asset_2}': []}

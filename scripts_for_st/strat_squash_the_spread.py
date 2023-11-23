@@ -24,36 +24,65 @@ def strat_squash_the_spread(**kwargs):
         asset_2 = st.selectbox('Select asset 2:', assets_names_list, index=assets_names_list.index(asset_2))
         commission = st.radio('Select commission:', [0, 0.0002, 0.001, 0.003], horizontal=True, index=2)
 
-        part1, part2, part3 = st.tabs(["Correlation", "Asset's Graphs", "Spread"])
+        part1, part2, part3, part4 = st.tabs(["Show Assets", "Correlation", "Asset's Graphs", "Spread"])
         with part1:
-            st.write(f'## First, checking correlation:')
+            st.write(f"## First, let's look at the stocks:")
+            plot_dict = {'Dates': dates_list, f'{asset_1}': [], f'{asset_2}': []}
+            for date in dates_list:
+                a1_prices = np.array(data[date][asset_1]['price'])
+                a1_prices_df = values_to_zero_based(asset_1, a1_prices)
+                plot_dict[f'{asset_1}'].append(np.mean(a1_prices_df[asset_1]))
+
+                a2_prices = np.array(data[date][asset_2]['price'])
+                a2_prices_df = values_to_zero_based(asset_2, a2_prices)
+                plot_dict[f'{asset_2}'].append(np.mean(a2_prices_df[asset_2]))
+
+            fig = px.line(plot_dict, x='Dates', y=[f'{asset_1}', f'{asset_2}'])
+            st.plotly_chart(fig, use_container_width=True)
+
+            selected_date = st.select_slider("Date:", options=dates_list, value=dates_list[0])
+            day_plot_dict = {f'{asset_1}': [], f'{asset_2}': []}
+            a1_prices = np.array(data[selected_date][asset_1]['price'])
+            a1_prices_df = values_to_zero_based(asset_1, a1_prices)
+            day_plot_dict[f'{asset_1}'] = a1_prices_df[asset_1]
+
+            a2_prices = np.array(data[selected_date][asset_2]['price'])
+            a2_prices_df = values_to_zero_based(asset_2, a2_prices)
+            day_plot_dict[f'{asset_2}'] = a2_prices_df[asset_2]
+
+            fig = px.line(day_plot_dict)
+            st.plotly_chart(fig, use_container_width=True)
+
+        with part2:
+            st.write(f"## Then, let's checking correlation:")
             corr_list = []
             for date in dates_list:
                 a1_prices = np.array(data[date][asset_1]['price'])
+                a1_prices_df = values_to_zero_based(asset_1, a1_prices)
                 a2_prices = np.array(data[date][asset_2]['price'])
-                a1_prices = np.diff(a1_prices) / a1_prices[:-1]
-                a2_prices = np.diff(a2_prices) / a2_prices[:-1]
-                correlation, p_value = sp.stats.pearsonr(a1_prices, a2_prices)
+                a2_prices_df = values_to_zero_based(asset_2, a2_prices)
+                correlation, p_value = sp.stats.pearsonr(a1_prices_df[asset_1], a2_prices_df[asset_2])
                 corr_list.append(correlation)
             plot_dict = {'Dates': dates_list, "Pearson's R": corr_list}
             fig = px.line(plot_dict, x='Dates', y="Pearson's R")
             st.plotly_chart(fig, use_container_width=True)
 
-        with part2:
-            st.write(f"## Then, let's look at the stocks:")
+        with part3:
+            st.write(f"## Then, let's examine the spread:")
             plot_dict = {'Dates': dates_list, f'{asset_1}': [], f'{asset_2}': []}
             for date in dates_list:
                 a1_prices = np.array(data[date][asset_1]['price'])
+                a1_prices_df = values_to_zero_based(asset_1, a1_prices)
                 a2_prices = np.array(data[date][asset_2]['price'])
-                a1_prices = np.diff(a1_prices) / a1_prices[:-1]
-                a2_prices = np.diff(a2_prices) / a2_prices[:-1]
+                a2_prices_df = values_to_zero_based(asset_2, a2_prices)
+
                 plot_dict[f'{asset_1}'].append(np.mean(a1_prices))
                 plot_dict[f'{asset_2}'].append(np.mean(a2_prices))
 
             fig = px.line(plot_dict, x='Dates', y=[f'{asset_1}', f'{asset_2}'])
             st.plotly_chart(fig, use_container_width=True)
 
-        with part3:
+        with part4:
             st.write(f"## Finally, let's examine the spread:")
             plot_dict = {'Dates': dates_list, 'spread %': [], 'spread_prices': []}
             for date in dates_list:

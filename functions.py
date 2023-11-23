@@ -1,7 +1,16 @@
+import numpy
+
 from globals import *
 
 
-
+def values_to_zero_based(asset, values: numpy.ndarray):
+    plot_dict = {f'{asset}': values}
+    plot_df = pd.DataFrame.from_dict(plot_dict)
+    out = plot_df.pct_change()
+    out.iloc[0] = 0
+    out = (out + 1).cumprod()-1
+    out *= 100
+    return out
 
 
 def get_time_period_start(time_period):

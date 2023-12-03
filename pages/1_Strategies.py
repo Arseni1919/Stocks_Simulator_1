@@ -15,7 +15,7 @@ dates_list.sort(key=lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"))
 # Strategies
 """
 
-to_show = st.toggle('Show general data', value=True)
+to_show = st.toggle('Show general data', value=False)
 if to_show:
     asset = st.selectbox('Select asset:', assets_names_list)
     st.write(f'# All Periods of {asset}')

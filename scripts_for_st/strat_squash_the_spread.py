@@ -56,6 +56,7 @@ def strat_squash_the_spread(**kwargs):
 
         with part2:
             st.write(f"## Then, let's checking correlation:")
+            st.image(f'pics/corr_formula.png', caption='Correlation Formula', width=400)
             corr_list = []
             for date in dates_list:
                 a1_prices = np.array(data[date][asset_1]['price'])

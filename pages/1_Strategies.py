@@ -2,8 +2,8 @@ from indicator_functions import *
 from st_plot_functions import *
 from st_functions import *
 from functions import *
-from scripts_for_st.strat_simple_follow_stock import strat_simple_follow_stock
-from scripts_for_st.strat_squash_the_spread import strat_squash_the_spread
+from st_strategies.strat_simple_follow_stock import strat_simple_follow_stock
+from st_strategies.strat_squash_the_spread import strat_squash_the_spread
 
 # init
 st.set_page_config(layout="wide")

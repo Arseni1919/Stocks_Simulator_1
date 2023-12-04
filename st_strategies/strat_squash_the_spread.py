@@ -24,9 +24,11 @@ def strat_squash_the_spread(**kwargs):
         asset_2 = st.selectbox('Select asset 2:', assets_names_list, index=assets_names_list.index(asset_2))
         commission = st.radio('Select commission:', [0, 0.0002, 0.001, 0.003], horizontal=True, index=2)
 
-        part1, part2, part3, part4 = st.tabs(["Show Assets", "Correlation", "Asset's Graphs", "Spread"])
-        #
-        with part1:
+        part_show_assets, part_corr, part_assets_graphs, part_spread = st.tabs(
+            ["Show Assets", "Correlation", "Asset's Graphs", "Spread"]
+        )
+
+        with part_show_assets:
             st.write(f"## First, let's look at the stocks:")
             plot_dict = {'Dates': dates_list, f'{asset_1}': [], f'{asset_2}': []}
             for date in dates_list:
@@ -54,7 +56,7 @@ def strat_squash_the_spread(**kwargs):
             fig = px.line(day_plot_dict)
             st.plotly_chart(fig, use_container_width=True)
 
-        with part2:
+        with part_corr:
             st.write(f"## Then, let's checking correlation:")
             st.image(f'pics/corr_formula.png', caption='Correlation Formula', width=400)
             corr_list = []
@@ -69,7 +71,7 @@ def strat_squash_the_spread(**kwargs):
             fig = px.line(plot_dict, x='Dates', y="Pearson's R")
             st.plotly_chart(fig, use_container_width=True)
 
-        with part3:
+        with part_assets_graphs:
             st.write(f"## Then, let's examine the spread:")
             plot_dict = {'Dates': dates_list, f'{asset_1}': [], f'{asset_2}': []}
             for date in dates_list:
@@ -84,7 +86,7 @@ def strat_squash_the_spread(**kwargs):
             fig = px.line(plot_dict, x='Dates', y=[f'{asset_1}', f'{asset_2}'])
             st.plotly_chart(fig, use_container_width=True)
 
-        with part4:
+        with part_spread:
             st.write(f"## Finally, let's examine the spread:")
             plot_dict = {'Dates': dates_list, 'spread %': [], 'spread_prices': []}
             for date in dates_list:
